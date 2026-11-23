@@ -26,13 +26,25 @@
     return parsed;
   }
 
+  async function getProducts() {
+    if (window.BELLEZA_SUPABASE_ERROR) throw new Error(window.BELLEZA_SUPABASE_ERROR);
+    if (!window.BELLEZA_SUPABASE) return readList(productKey, defaults);
+
+    const { data, error } = await window.BELLEZA_SUPABASE
+      .from("products")
+      .select("id,name,category,price,image,badge")
+      .order("sort_order")
+      .order("name");
+    if (error) throw new Error(`Could not load BELLEZA products: ${error.message}`);
+    return data.map((product) => ({ ...product, price: Number(product.price) }));
+  }
+
   function writeList(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   }
 
   window.BELLEZAStore = {
-    getProducts: () => readList(productKey, defaults),
-    saveProducts: (products) => writeList(productKey, products),
+    getProducts,
     getCatalogues: () => readList(catalogueKey, []),
     saveCatalogues: (catalogues) => writeList(catalogueKey, catalogues),
     getWishlist: () => readList(wishlistKey, []),

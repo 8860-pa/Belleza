@@ -6,7 +6,7 @@ const productGrid = document.getElementById("productGrid");
 const cartPanel = document.getElementById("cartPanel");
 const overlay = document.getElementById("overlay");
 let productCards = [];
-let products = window.BELLEZAStore.getProducts();
+let products = [];
 let wishlist = window.BELLEZAStore.getWishlist();
 
 function escapeHtml(value) {
@@ -38,6 +38,16 @@ function renderProducts() {
   bindProductActions();
   applyFilters();
   updateWishlistCount();
+}
+
+async function loadProducts() {
+  try {
+    products = await window.BELLEZAStore.getProducts();
+    renderProducts();
+  } catch (error) {
+    productGrid.innerHTML = '<p class="empty-cart">Products could not be loaded. Please try again later.</p>';
+    console.error("Could not load BELLEZA products.", error);
+  }
 }
 
 function bindProductActions() {
@@ -83,7 +93,7 @@ function updateWishlistCount() {
 }
 
 renderFilters();
-renderProducts();
+loadProducts();
 updateWishlistCount();
 
 document.getElementById("searchToggle").addEventListener("click", () => {
