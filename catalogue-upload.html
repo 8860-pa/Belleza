@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Catalogue — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .upload-main { min-height: calc(100vh - 116px); display: grid; grid-template-columns: 38% 62%; }
+      .upload-copy { display: flex; flex-direction: column; justify-content: center; padding: 70px 12%; border-right: 1px solid var(--line); }
+      .upload-copy h1 { font-size: clamp(42px, 5vw, 68px); margin-bottom: 24px; }
+      .upload-copy p:not(.eyebrow) { color: #62665f; line-height: 1.7; max-width: 390px; }
+      .upload-workspace { display: flex; align-items: center; justify-content: center; padding: 60px 7%; background: #efede6; }
+      .upload-card { width: min(680px, 100%); }
+      .catalogue-form { width: 100%; }
+      .form-intro { margin: 0 0 20px; font-size: 13px; color: #777b72; }
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+      .form-field { display: flex; flex-direction: column; gap: 7px; }
+      .form-field.full { grid-column: 1 / -1; }
+      .form-field label { font-size: 12px; font-weight: 600; }
+      .form-field input, .form-field select, .form-field textarea {
+        width: 100%; min-height: 44px; border: 1px solid var(--line); background: white;
+        color: var(--ink); padding: 10px 12px; outline-color: var(--ink);
+      }
+      .form-field textarea { min-height: 100px; resize: vertical; }
+      .form-field small { color: #85887f; font-size: 11px; }
+      .drop-zone {
+        min-height: 330px; border: 1px dashed #9d9f96; background: rgba(255,255,255,.58);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; cursor: pointer; transition: .2s ease;
+      }
+      .drop-zone.dragging { border-color: var(--ink); background: #fff; transform: scale(1.01); }
+      .upload-icon { width: 54px; height: 54px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px; background: white; font-size: 24px; }
+      .drop-zone h2 { margin: 0 0 8px; font-size: 22px; }
+      .drop-zone p { margin: 0 0 22px; color: #777b72; font-size: 13px; }
+      .browse-button { height: 44px; padding: 0 22px; border: 1px solid var(--ink); background: var(--ink); color: white; cursor: pointer; }
+      #catalogueFiles { display: none; }
+      .file-label { margin: 0 0 10px; font-size: 12px; font-weight: 600; }
+      .file-list { margin-top: 16px; }
+      .file-row { display: grid; grid-template-columns: 1fr auto; align-items: center; background: white; border: 1px solid var(--line); margin-bottom: 8px; padding: 14px 16px; }
+      .file-details strong { display: block; font-size: 14px; margin-bottom: 3px; }
+      .file-details span, .upload-status { color: #85887f; font-size: 12px; }
+      .remove-file { border: 0; background: transparent; cursor: pointer; color: #85887f; font-size: 20px; }
+      .upload-status { min-height: 20px; margin: 14px 0 0; }
+      .submit-catalogue { width: 100%; height: 50px; margin-top: 12px; border: 0; background: var(--ink); color: white; cursor: pointer; }
+      .submit-catalogue:hover { background: #383d35; }
+      .storage-note { margin: 12px 0 0; color: #777b72; font-size: 11px; line-height: 1.5; }
+      .back-link { margin-bottom: 38px; }
+      @media (max-width: 900px) {
+        .upload-main { grid-template-columns: 1fr; }
+        .upload-copy { min-height: 360px; border-right: 0; border-bottom: 1px solid var(--line); padding: 50px 20px; }
+        .upload-workspace { min-height: 520px; padding: 40px 20px; }
+      }
+      @media (max-width: 600px) {
+        .upload-copy { min-height: 320px; }
+        .upload-copy h1 { font-size: 44px; }
+        .drop-zone { min-height: 300px; }
+        .form-grid { grid-template-columns: 1fr; }
+        .form-field.full { grid-column: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">Free shipping on orders over $75</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html#shop">Shop</a>
+        <a href="index.html#collections">Collections</a>
+        <a href="index.html#story">Our story</a>
+        <a href="manage.html">Manage</a>
+        <a href="catalogue-upload.html">Upload catalogue</a>
+      </nav>
+      <div class="header-actions">
+        <a class="icon-button" href="index.html" aria-label="Back to store">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+        </a>
+      </div>
+    </header>
+
+    <main class="upload-main">
+      <section class="upload-copy">
+        <a class="text-link back-link" href="index.html">← Back to store</a>
+        <p class="eyebrow">Vendor resources</p>
+        <h1>Upload your<br><em>catalogue.</em></h1>
+        <p>Share your latest collection, lookbook, or wholesale catalogue with the BELLEZA team.</p>
+      </section>
+      <section class="upload-workspace">
+        <div class="upload-card">
+          <form class="catalogue-form" id="catalogueForm">
+            <p class="form-intro">Catalogue details <span aria-hidden="true">*</span> Required fields</p>
+            <div class="form-grid">
+              <div class="form-field full">
+                <label for="catalogueTitle">Catalogue title *</label>
+                <input id="catalogueTitle" name="title" type="text" maxlength="100" placeholder="e.g. Spring Essentials 2026" required />
+              </div>
+              <div class="form-field">
+                <label for="brandName">Brand or vendor name *</label>
+                <input id="brandName" name="brand" type="text" maxlength="100" placeholder="Your brand name" required />
+              </div>
+              <div class="form-field">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                  <option value="">Select a category</option>
+                  <option>Clothing</option>
+                  <option>Accessories</option>
+                  <option>Beauty &amp; wellness</option>
+                  <option>Home &amp; living</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="season">Season or collection</label>
+                <input id="season" name="season" type="text" maxlength="60" placeholder="e.g. Spring / Summer 2026" />
+              </div>
+              <div class="form-field">
+                <label for="productCount">Number of products</label>
+                <input id="productCount" name="productCount" type="number" min="1" max="10000" placeholder="e.g. 24" />
+              </div>
+              <div class="form-field full">
+                <label for="description">Description *</label>
+                <textarea id="description" name="description" maxlength="1500" placeholder="Describe this collection, its products, materials, and what makes it special." required></textarea>
+                <small>Up to 1,500 characters.</small>
+              </div>
+              <div class="form-field full">
+                <label for="contactEmail">Contact email *</label>
+                <input id="contactEmail" name="email" type="email" placeholder="you@example.com" required />
+              </div>
+            </div>
+            <p class="file-label">Catalogue file * <span aria-hidden="true">Choose at least one file</span></p>
+            <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Add catalogue files">
+              <div class="upload-icon">↑</div>
+              <h2>Drop catalogue files here</h2>
+              <p>PDF, JPG, PNG or ZIP · Maximum 20 MB per file</p>
+              <button class="browse-button" type="button" id="browseButton">Browse files</button>
+              <input id="catalogueFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.zip" />
+            </div>
+            <div class="file-list" id="fileList"></div>
+            <p class="upload-status" id="uploadStatus" aria-live="polite"></p>
+            <button class="submit-catalogue" type="submit">Submit catalogue</button>
+            <p class="storage-note">Your details and files are staged in this browser. Server upload and publishing require a connected storage service.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="store-data.js"></script>
+    <script>
+      const input = document.getElementById("catalogueFiles");
+      const dropZone = document.getElementById("dropZone");
+      const fileList = document.getElementById("fileList");
+      const uploadStatus = document.getElementById("uploadStatus");
+      const catalogueForm = document.getElementById("catalogueForm");
+      let files = [];
+
+      document.getElementById("browseButton").addEventListener("click", (event) => {
+        event.stopPropagation();
+        input.click();
+      });
+      dropZone.addEventListener("click", () => input.click());
+      dropZone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          input.click();
+        }
+      });
+      input.addEventListener("change", () => addFiles(input.files));
+      catalogueForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!files.length) {
+          uploadStatus.textContent = "Add at least one catalogue file before submitting.";
+          dropZone.focus();
+          return;
+        }
+        const values = new FormData(catalogueForm);
+        const catalogues = window.BELLEZAStore.getCatalogues();
+        catalogues.unshift({
+          id: `catalogue-${Date.now()}`,
+          title: values.get("title").trim(),
+          brand: values.get("brand").trim(),
+          category: values.get("category"),
+          season: values.get("season").trim(),
+          productCount: values.get("productCount"),
+          description: values.get("description").trim(),
+          email: values.get("email").trim(),
+          files: files.map((file) => file.name),
+          createdAt: new Date().toISOString()
+        });
+        window.BELLEZAStore.saveCatalogues(catalogues);
+        uploadStatus.textContent = "Catalogue details saved in this browser. File transfer still requires a connected storage service.";
+      });
+
+      ["dragenter", "dragover"].forEach((type) => {
+        dropZone.addEventListener(type, (event) => {
+          event.preventDefault();
+          dropZone.classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach((type) => {
+        dropZone.addEventListener(type, (event) => {
+          event.preventDefault();
+          dropZone.classList.remove("dragging");
+        });
+      });
+      dropZone.addEventListener("drop", (event) => addFiles(event.dataTransfer.files));
+
+      function addFiles(selectedFiles) {
+        const allowed = /\.(pdf|jpe?g|png|zip)$/i;
+        let rejected = 0;
+        [...selectedFiles].forEach((file) => {
+          if (file.size <= 20 * 1024 * 1024 && allowed.test(file.name)) files.push(file);
+          else rejected++;
+        });
+        renderFiles(rejected);
+        input.value = "";
+      }
+
+      function formatSize(bytes) {
+        return bytes < 1024 * 1024
+          ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+          : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function escapeHtml(value) {
+        const element = document.createElement("div");
+        element.textContent = value;
+        return element.innerHTML;
+      }
+
+      function renderFiles(rejected = 0) {
+        fileList.innerHTML = files.map((file, index) => `
+          <div class="file-row">
+            <div class="file-details">
+              <strong>${escapeHtml(file.name)}</strong>
+              <span>${formatSize(file.size)} · Ready to send</span>
+            </div>
+            <button class="remove-file" type="button" data-index="${index}" aria-label="Remove ${escapeHtml(file.name)}">×</button>
+          </div>
+        `).join("");
+        const selection = `${files.length} file${files.length === 1 ? "" : "s"} selected`;
+        uploadStatus.textContent = rejected
+          ? `${selection}. ${rejected} file${rejected === 1 ? "" : "s"} skipped (unsupported type or over 20 MB).`
+          : files.length ? selection : "";
+        fileList.querySelectorAll(".remove-file").forEach((button) => {
+          button.addEventListener("click", () => {
+            files.splice(Number(button.dataset.index), 1);
+            renderFiles();
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
