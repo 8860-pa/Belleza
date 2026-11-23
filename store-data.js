@@ -50,7 +50,13 @@
     categories: [
       { value: "home", label: "Home" },
       { value: "wellness", label: "Wellness" },
-      { value: "carry", label: "Carry" }
+      { value: "carry", label: "Carry" },
+      { value: "mobile-accessories", label: "Mobile Accessories" },
+      { value: "charger-case", label: "Charger Case" },
+      { value: "key-chain", label: "Key Chain" },
+      { value: "humidifier", label: "Humidifier" },
+      { value: "massager", label: "Massager" },
+      { value: "t-shirts", label: "T-shirts" }
     ]
   };
 })();
