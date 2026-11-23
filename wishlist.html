@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wishlist — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="announcement">Free shipping on orders over ₹75</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html#shop">Shop</a>
+        <a href="index.html#collections">Collections</a>
+        <a href="wishlist.html" aria-current="page">Wishlist</a>
+        <a href="admin-products.html">Admin</a>
+      </nav>
+      <div class="header-actions">
+        <a class="text-link" href="index.html#shop">Continue shopping</a>
+      </div>
+    </header>
+
+    <main class="wishlist-main">
+      <div class="wishlist-heading">
+        <div>
+          <p class="eyebrow">Saved for later</p>
+          <h1>Your wishlist.</h1>
+        </div>
+        <p class="wishlist-count" id="wishlistCount" aria-live="polite"></p>
+      </div>
+      <div class="product-grid" id="wishlistGrid"></div>
+    </main>
+
+    <footer>
+      <a class="brand footer-brand" href="index.html">BELLEZA</a>
+      <p>Objects for everyday life.<br><a class="footer-email" href="mailto:bellezaattire@gmail.com">bellezaattire@gmail.com</a><br><a class="footer-email" href="tel:+918800845005">+91 8800845005</a></p>
+      <a class="text-link" href="index.html#shop" style="color:white;border-color:white">Continue shopping ↗</a>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="store-data.js"></script>
+    <script>
+      const grid = document.getElementById("wishlistGrid");
+      const count = document.getElementById("wishlistCount");
+
+      function escapeHtml(value) {
+        const element = document.createElement("div");
+        element.textContent = String(value ?? "");
+        return element.innerHTML;
+      }
+
+      async function renderWishlist() {
+        const savedIds = window.BELLEZAStore.getWishlist();
+        let products;
+        try {
+          products = (await window.BELLEZAStore.getProducts())
+          .filter((product) => savedIds.includes(product.id));
+        } catch (error) {
+          count.textContent = "";
+          grid.innerHTML = '<div class="wishlist-empty" style="grid-column:1 / -1"><h2>Wishlist unavailable</h2><p>Products could not be loaded. Please try again later.</p></div>';
+          console.error("Could not load BELLEZA wishlist products.", error);
+          return;
+        }
+        count.textContent = `${products.length} item${products.length === 1 ? "" : "s"}`;
+
+        if (!products.length) {
+          grid.innerHTML = `
+            <div class="wishlist-empty" style="grid-column:1 / -1">
+              <h2>Your wishlist is empty</h2>
+              <p>Tap the heart on a product to save it here.</p>
+              <a class="text-link" href="index.html#shop">Explore products ↗</a>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = products.map((product) => {
+          const category = window.BELLEZAStore.categories.find((item) => item.value === product.category);
+          return `
+            <article class="product-card">
+              <div class="product-image">
+                ${product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : ""}
+                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />
+              </div>
+              <div class="product-info">
+                <div>
+                  <p class="product-category">${escapeHtml(category ? category.label : product.category)}</p>
+                  <h3>${escapeHtml(product.name)}</h3>
+                </div>
+                <p class="price">${window.BELLEZAStore.formatPrice(product.price)}</p>
+              </div>
+              <button class="wishlist-remove" type="button" data-remove="${escapeHtml(product.id)}">Remove from wishlist</button>
+            </article>
+          `;
+        }).join("");
+
+        grid.querySelectorAll("[data-remove]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const remaining = window.BELLEZAStore.getWishlist()
+              .filter((id) => id !== button.dataset.remove);
+            window.BELLEZAStore.saveWishlist(remaining);
+            renderWishlist();
+          });
+        });
+      }
+
+      renderWishlist();
+    </script>
+  </body>
+</html>

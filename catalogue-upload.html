@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Catalogue — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .upload-main { min-height: calc(100vh - 116px); display: grid; grid-template-columns: 38% 62%; }
+      .upload-copy { display: flex; flex-direction: column; justify-content: center; padding: 70px 12%; border-right: 1px solid var(--line); }
+      .upload-copy h1 { font-size: clamp(42px, 5vw, 68px); margin-bottom: 24px; }
+      .upload-copy p:not(.eyebrow) { color: #62665f; line-height: 1.7; max-width: 390px; }
+      .upload-workspace { display: flex; align-items: center; justify-content: center; padding: 60px 7%; background: #efede6; }
+      .upload-card { width: min(680px, 100%); }
+      .vendor-auth { width: 100%; padding: 28px; background: white; }
+      .vendor-auth h2 { margin: 0 0 12px; font-size: 24px; }
+      .vendor-auth > p { color: #777b72; font-size: 13px; line-height: 1.6; }
+      .vendor-auth-form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .secondary-button { min-height: 46px; padding: 0 18px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+      .vendor-auth-message { min-height: 20px; margin: 14px 0 0; color: #62665f; font-size: 13px; }
+      .vendor-session { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+      .vendor-session[hidden] { display: none; }
+      .vendor-session p { margin: 0; color: #777b72; font-size: 12px; }
+      .catalogue-form { width: 100%; }
+      .catalogue-form[hidden] { display: none; }
+      .form-intro { margin: 0 0 20px; font-size: 13px; color: #777b72; }
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+      .form-field { display: flex; flex-direction: column; gap: 7px; }
+      .form-field.full { grid-column: 1 / -1; }
+      .form-field label { font-size: 12px; font-weight: 600; }
+      .form-field input, .form-field select, .form-field textarea {
+        width: 100%; min-height: 44px; border: 1px solid var(--line); background: white;
+        color: var(--ink); padding: 10px 12px; outline-color: var(--ink);
+      }
+      .form-field textarea { min-height: 100px; resize: vertical; }
+      .form-field small { color: #85887f; font-size: 11px; }
+      .drop-zone {
+        min-height: 330px; border: 1px dashed #9d9f96; background: rgba(255,255,255,.58);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; cursor: pointer; transition: .2s ease;
+      }
+      .drop-zone.dragging { border-color: var(--ink); background: #fff; transform: scale(1.01); }
+      .upload-icon { width: 54px; height: 54px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px; background: white; font-size: 24px; }
+      .drop-zone h2 { margin: 0 0 8px; font-size: 22px; }
+      .drop-zone p { margin: 0 0 22px; color: #777b72; font-size: 13px; }
+      .browse-button { height: 44px; padding: 0 22px; border: 1px solid var(--ink); background: var(--ink); color: white; cursor: pointer; }
+      #catalogueFiles { display: none; }
+      .file-label { margin: 0 0 10px; font-size: 12px; font-weight: 600; }
+      .file-list { margin-top: 16px; }
+      .file-row { display: grid; grid-template-columns: 1fr auto; align-items: center; background: white; border: 1px solid var(--line); margin-bottom: 8px; padding: 14px 16px; }
+      .file-details strong { display: block; font-size: 14px; margin-bottom: 3px; }
+      .file-details span, .upload-status { color: #85887f; font-size: 12px; }
+      .remove-file { border: 0; background: transparent; cursor: pointer; color: #85887f; font-size: 20px; }
+      .upload-status { min-height: 20px; margin: 14px 0 0; }
+      .submit-catalogue { width: 100%; height: 50px; margin-top: 12px; border: 0; background: var(--ink); color: white; cursor: pointer; }
+      .submit-catalogue:hover { background: #383d35; }
+      .storage-note { margin: 12px 0 0; color: #777b72; font-size: 11px; line-height: 1.5; }
+      .back-link { margin-bottom: 38px; }
+      @media (max-width: 900px) {
+        .upload-main { grid-template-columns: 1fr; }
+        .upload-copy { min-height: 360px; border-right: 0; border-bottom: 1px solid var(--line); padding: 50px 20px; }
+        .upload-workspace { min-height: 520px; padding: 40px 20px; }
+      }
+      @media (max-width: 600px) {
+        .upload-copy { min-height: 320px; }
+        .upload-copy h1 { font-size: 44px; }
+        .drop-zone { min-height: 300px; }
+        .form-grid { grid-template-columns: 1fr; }
+        .form-field.full { grid-column: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">Free shipping on orders over ₹75</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html#shop">Shop</a>
+        <a href="index.html#collections">Collections</a>
+        <a href="index.html#story">Our story</a>
+      </nav>
+      <nav class="header-actions backend-tools" aria-label="Backend tools">
+        <a class="icon-button" href="admin-products.html" aria-label="Admin" title="Admin">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.7-3 8-7 10-4-2-7-5.3-7-10V6l7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        </a>
+        <a class="icon-button" href="catalogue-upload.html" aria-label="Upload catalogue" aria-current="page" title="Upload catalogue">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5M12 17v-6m0 0-2.5 2.5M12 11l2.5 2.5"></path></svg>
+        </a>
+        <a class="icon-button" href="seller-panel.html" aria-label="Seller panel" title="Seller panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M4.5 20c.7-3.4 3.2-5 7.5-5s6.8 1.6 7.5 5"></path></svg>
+        </a>
+        <a class="icon-button" href="index.html" aria-label="Back to store">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+        </a>
+      </nav>
+    </header>
+
+    <main class="upload-main">
+      <section class="upload-copy">
+        <a class="text-link back-link" href="index.html">← Back to store</a>
+        <p class="eyebrow">Vendor resources</p>
+        <h1>Upload your<br><em>catalogue.</em></h1>
+        <p>Share your latest collection, lookbook, or wholesale catalogue with the BELLEZA team.</p>
+      </section>
+      <section class="upload-workspace">
+        <div class="upload-card">
+          <section class="vendor-auth" id="vendorAuth">
+            <h2>Vendor sign in</h2>
+            <p>Sign in or create a vendor account to submit a catalogue. Your uploads are private to you and the BELLEZA admin team.</p>
+            <form id="vendorAuthForm">
+              <div class="form-grid">
+                <div class="form-field full">
+                  <label for="vendorEmail">Email</label>
+                  <input id="vendorEmail" name="email" type="email" autocomplete="username" required />
+                </div>
+                <div class="form-field full">
+                  <label for="vendorPassword">Password</label>
+                  <input id="vendorPassword" name="password" type="password" autocomplete="current-password" minlength="8" required />
+                </div>
+              </div>
+              <div class="vendor-auth-form-actions">
+                <button class="submit-catalogue" id="vendorAuthSubmit" type="submit" style="width:auto;padding:0 20px">Sign in</button>
+                <button class="secondary-button" id="toggleAuthMode" type="button">Create vendor account</button>
+              </div>
+            </form>
+            <p class="vendor-auth-message" id="vendorAuthMessage" aria-live="polite"></p>
+          </section>
+          <div class="vendor-session" id="vendorSession" hidden>
+            <p id="vendorIdentity"></p>
+            <button class="secondary-button" id="vendorSignOutButton" type="button">Sign out</button>
+          </div>
+          <form class="catalogue-form" id="catalogueForm" hidden>
+            <p class="form-intro">Catalogue details <span aria-hidden="true">*</span> Required fields</p>
+            <div class="form-grid">
+              <div class="form-field full">
+                <label for="catalogueTitle">Catalogue title *</label>
+                <input id="catalogueTitle" name="title" type="text" maxlength="100" placeholder="e.g. Spring Essentials 2026" required />
+              </div>
+              <div class="form-field">
+                <label for="brandName">Brand or vendor name *</label>
+                <input id="brandName" name="brand" type="text" maxlength="100" placeholder="Your brand name" required />
+              </div>
+              <div class="form-field">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                  <option value="">Select a category</option>
+                  <option>Clothing</option>
+                  <option>Accessories</option>
+                  <option>Beauty &amp; wellness</option>
+                  <option>Home &amp; living</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="season">Season or collection</label>
+                <input id="season" name="season" type="text" maxlength="60" placeholder="e.g. Spring / Summer 2026" />
+              </div>
+              <div class="form-field">
+                <label for="productCount">Number of products</label>
+                <input id="productCount" name="productCount" type="number" min="1" max="10000" placeholder="e.g. 24" />
+              </div>
+              <div class="form-field full">
+                <label for="description">Description *</label>
+                <textarea id="description" name="description" maxlength="1500" placeholder="Describe this collection, its products, materials, and what makes it special." required></textarea>
+                <small>Up to 1,500 characters.</small>
+              </div>
+              <div class="form-field full">
+                <label for="contactEmail">Contact email *</label>
+                <input id="contactEmail" name="email" type="email" placeholder="you@example.com" required />
+              </div>
+            </div>
+            <p class="file-label">Catalogue file * <span aria-hidden="true">Choose at least one file</span></p>
+            <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Add catalogue files">
+              <div class="upload-icon">↑</div>
+              <h2>Drop catalogue files here</h2>
+              <p>PDF, JPG, PNG or ZIP · Maximum 20 MB per file</p>
+              <button class="browse-button" type="button" id="browseButton">Browse files</button>
+              <input id="catalogueFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.zip" />
+            </div>
+            <div class="file-list" id="fileList"></div>
+            <p class="upload-status" id="uploadStatus" aria-live="polite"></p>
+            <button class="submit-catalogue" type="submit">Submit catalogue</button>
+            <p class="storage-note">Files are uploaded to private BELLEZA storage and shared only with the BELLEZA admin team.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="catalogue-upload.js"></script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+name: Deploy static site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Configure Supabase client
+        env:
+          SUPABASE_URL: ${{ vars.BELLEZA_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.BELLEZA_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Set BELLEZA_SUPABASE_URL and BELLEZA_SUPABASE_PUBLISHABLE_KEY repository variables."
+            exit 1
+          fi
+          config="$(jq -cn --arg url "$SUPABASE_URL" --arg publishableKey "$SUPABASE_PUBLISHABLE_KEY" '{url: $url, publishableKey: $publishableKey}')"
+          printf 'window.BELLEZA_SUPABASE_CONFIG = %s;\n' "$config" > supabase-config.js
+      - name: Prepare static site
+        run: |
+          mkdir _site
+          cp admin-products.html admin-products.js catalogue-upload.html catalogue-upload.js checkout.html checkout.js index.html manage.html script.js seller-panel.html seller-panel.js store-data.js styles.css supabase-client.js supabase-config.js wishlist.html _site/
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

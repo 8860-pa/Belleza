@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Products — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .admin-main { max-width: 1120px; margin: auto; padding: 72px 4.5% 100px; min-height: calc(100vh - 116px); }
+      .admin-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 36px; }
+      .admin-heading .eyebrow { margin-bottom: 12px; }
+      .admin-heading h1 { font-size: clamp(40px, 5vw, 62px); margin: 0; }
+      .admin-panel { max-width: 1120px; padding: 28px; border: 1px solid var(--line); background: white; }
+      #loginPanel { max-width: 720px; }
+      .admin-panel[hidden], .product-form[hidden] { display: none; }
+      .admin-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin: 24px 0; }
+      .admin-tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 14px 18px; color: #777b72; cursor: pointer; }
+      .admin-tab.active { border-color: var(--ink); color: var(--ink); font-weight: 600; }
+      .admin-subpanel[hidden] { display: none; }
+      .admin-panel h2 { margin: 0 0 16px; font-size: 24px; }
+      .admin-note, .admin-message { color: #62665f; font-size: 13px; line-height: 1.6; }
+      .admin-message { min-height: 20px; margin: 14px 0 0; }
+      .product-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 22px; background: #efede6; margin-bottom: 24px; }
+      .form-field { display: flex; flex-direction: column; gap: 7px; }
+      .form-field.full, .form-actions { grid-column: 1 / -1; }
+      .form-field label { font-size: 12px; font-weight: 600; }
+      .form-field input, .form-field select { min-height: 42px; border: 1px solid var(--line); padding: 9px 11px; background: white; color: var(--ink); }
+      .form-actions { display: flex; gap: 10px; }
+      .primary-button, .secondary-button { min-height: 42px; padding: 0 16px; border: 1px solid var(--ink); cursor: pointer; }
+      .primary-button { background: var(--ink); color: white; }
+      .secondary-button { background: transparent; color: var(--ink); }
+      .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: white; }
+      .manage-table { width: 100%; border-collapse: collapse; text-align: left; }
+      .manage-table th, .manage-table td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: 13px; }
+      .manage-table th { color: #777b72; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+      .manage-table tr:last-child td { border-bottom: 0; }
+      .product-cell { display: flex; align-items: center; gap: 12px; min-width: 220px; }
+      .product-thumb { width: 48px; height: 54px; object-fit: cover; background: var(--sand); }
+      .catalogue-details { display: block; max-width: 360px; margin-top: 5px; color: #777b72; font-size: 11px; line-height: 1.5; }
+      .file-link { display: block; margin: 3px 0; color: var(--ink); font-size: 12px; text-underline-offset: 3px; }
+      .file-link.unavailable { color: #9c4a3e; text-decoration: none; }
+      .order-details { display: block; min-width: 190px; margin-top: 5px; color: #777b72; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+      .order-items { min-width: 160px; color: #62665f; font-size: 12px; line-height: 1.6; }
+      .order-controls { display: grid; min-width: 150px; gap: 7px; }
+      .order-controls select { min-height: 34px; border: 1px solid var(--line); padding: 5px 8px; background: white; color: var(--ink); }
+      .actions { display: flex; justify-content: flex-end; gap: 8px; }
+      .action-button { border: 0; background: transparent; padding: 6px; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
+      .action-button.delete { color: #9c4a3e; }
+      .empty-state { padding: 32px; text-align: center; color: #777b72; }
+      .admin-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 32px 0 18px; }
+      .admin-toolbar h2 { margin: 0; font-size: 24px; }
+      .admin-identity { color: #777b72; font-size: 12px; margin: 0 0 8px; }
+      @media (max-width: 700px) {
+        .admin-main { padding: 48px 20px 70px; }
+        .admin-heading { align-items: flex-start; flex-direction: column; }
+        .admin-panel { padding: 20px; }
+        .product-form { grid-template-columns: 1fr; padding: 16px; }
+        .form-field.full, .form-actions { grid-column: auto; }
+        .admin-toolbar { align-items: flex-start; flex-direction: column; }
+        .manage-table th, .manage-table td { padding: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">BELLEZA product administration</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html">Storefront</a>
+      </nav>
+      <nav class="header-actions backend-tools" aria-label="Backend tools">
+        <a class="icon-button" href="admin-products.html" aria-label="Admin" aria-current="page" title="Admin">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.7-3 8-7 10-4-2-7-5.3-7-10V6l7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        </a>
+        <a class="icon-button" href="catalogue-upload.html" aria-label="Upload catalogue" title="Upload catalogue">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5M12 17v-6m0 0-2.5 2.5M12 11l2.5 2.5"></path></svg>
+        </a>
+        <a class="icon-button" href="seller-panel.html" aria-label="Seller panel" title="Seller panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M4.5 20c.7-3.4 3.2-5 7.5-5s6.8 1.6 7.5 5"></path></svg>
+        </a>
+        <a class="text-link" href="index.html">View storefront ↗</a>
+      </nav>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-heading">
+        <div>
+          <p class="eyebrow">Admin only</p>
+          <h1>Manage products.</h1>
+        </div>
+      </div>
+
+      <section class="admin-panel" id="loginPanel">
+        <h2>Admin sign in</h2>
+        <p class="admin-note">Sign in with a Supabase Auth account that has been granted product-admin access.</p>
+        <form id="loginForm">
+          <div class="form-field">
+            <label for="adminEmail">Email</label>
+            <input id="adminEmail" name="email" type="email" autocomplete="username" required />
+          </div>
+          <div class="form-field" style="margin-top:14px">
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" name="password" type="password" autocomplete="current-password" required />
+          </div>
+          <button class="primary-button" type="submit" style="margin-top:18px">Sign in</button>
+        </form>
+        <p class="admin-message" id="authMessage" aria-live="polite"></p>
+      </section>
+
+      <section class="admin-panel" id="adminPanel" hidden>
+        <p class="admin-identity" id="adminIdentity"></p>
+        <button class="secondary-button" id="signOutButton" type="button">Sign out</button>
+        <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+          <button class="admin-tab active" id="productsTab" type="button" role="tab" aria-selected="true" aria-controls="productsPanel" data-panel="productsPanel">Products</button>
+          <button class="admin-tab" id="cataloguesTab" type="button" role="tab" aria-selected="false" aria-controls="cataloguesPanel" data-panel="cataloguesPanel">Catalogue submissions</button>
+          <button class="admin-tab" id="ordersTab" type="button" role="tab" aria-selected="false" aria-controls="ordersPanel" data-panel="ordersPanel">Orders</button>
+        </div>
+        <section class="admin-subpanel" id="productsPanel" role="tabpanel" aria-labelledby="productsTab">
+          <div class="admin-toolbar">
+            <h2>Products <span id="productCount"></span></h2>
+            <button class="primary-button" id="addProductButton" type="button">Add product</button>
+          </div>
+          <form class="product-form" id="productForm" hidden>
+            <div class="form-field">
+              <label for="productName">Product name *</label>
+              <input id="productName" name="name" required maxlength="100" />
+            </div>
+            <div class="form-field">
+              <label for="productCategory">Category *</label>
+              <select id="productCategory" name="category" required>
+                <option value="">Select category</option>
+                <option value="home">Home</option>
+                <option value="wellness">Wellness</option>
+                <option value="carry">Carry</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="productPrice">Price (INR) *</label>
+              <input id="productPrice" name="price" type="number" min="0.01" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="productBadge">Badge</label>
+              <input id="productBadge" name="badge" maxlength="24" placeholder="e.g. New" />
+            </div>
+            <div class="form-field full">
+              <label for="productImage">Product image URL *</label>
+              <input id="productImage" name="image" type="url" required placeholder="https://example.com/product.jpg" />
+            </div>
+            <div class="form-actions">
+              <button class="primary-button" id="saveProductButton" type="submit">Save product</button>
+              <button class="secondary-button" id="cancelProductButton" type="button">Cancel</button>
+            </div>
+          </form>
+          <p class="admin-message" id="productMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="productsBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="admin-subpanel" id="cataloguesPanel" role="tabpanel" aria-labelledby="cataloguesTab" hidden>
+          <div class="admin-toolbar">
+            <h2>Catalogue submissions <span id="catalogueCount"></span></h2>
+            <button class="secondary-button" id="refreshCataloguesButton" type="button">Refresh</button>
+          </div>
+          <p class="admin-message" id="catalogueMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Catalogue</th><th>Vendor</th><th>Category</th><th>Submitted</th><th>Files</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="cataloguesBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="admin-subpanel" id="ordersPanel" role="tabpanel" aria-labelledby="ordersTab" hidden>
+          <div class="admin-toolbar">
+            <h2>Customer orders <span id="orderCount"></span></h2>
+            <button class="secondary-button" id="refreshOrdersButton" type="button">Refresh</button>
+          </div>
+          <p class="admin-note">Delivery addresses and contact details are visible only to product admins. Confirm delivery charges with the customer before dispatch.</p>
+          <p class="admin-message" id="ordersMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Order</th><th>Delivery details</th><th>Items</th><th>Subtotal</th><th>Payment</th><th>Status</th></tr></thead>
+              <tbody id="ordersBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="store-data.js"></script>
+    <script src="admin-products.js"></script>
+  </body>
+</html>
