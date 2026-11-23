@@ -30,5 +30,6 @@ All product prices are formatted in INR. Existing numeric prices are treated as 
 
 5. Open `admin-products.html` and sign in with the authorized admin account. The Products tab manages storefront items; Catalogue submissions lists vendor uploads and creates short-lived download links for the private files.
 6. Vendors can create an account or sign in at `catalogue-upload.html`, then submit PDF, JPG, PNG, or ZIP files up to 20 MB each. Supabase stores submissions and files; vendors can only upload to their own storage folder, and only admins can view all submissions.
+7. Sellers can sign in at `seller-panel.html` to view their own submissions and open short-lived links to their private catalogue files. The panel relies on the existing authenticated-user RLS policies and does not expose other sellers' submissions.
 
 The admin page does not include a client-side password or decide admin access itself; Supabase Auth and row-level security enforce access. If the project variables are missing, the local preview falls back to default products while admin actions and vendor uploads remain disabled. Existing product edits in browser `localStorage` are not automatically migrated to Supabase.
