@@ -6,9 +6,9 @@ A static storefront for BELLEZA, built with HTML, CSS, and vanilla JavaScript.
 
 Open `index.html` in a browser or serve the repository root with a local static file server. No build step or package installation is required.
 
-## Netlify
+## GitHub Pages
 
-Connect this repository to a Netlify site and select its production branch. Netlify reads `netlify.toml`, which stages only the storefront files in `_site` for publishing.
+The GitHub Actions workflow in `.github/workflows/pages.yml` publishes the storefront when changes are pushed to `main` or when the workflow is run manually. Enable GitHub Pages for the repository with **GitHub Actions** as the build and deployment source.
 
 ## Data and security
 

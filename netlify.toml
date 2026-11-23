@@ -1,3 +1,0 @@
-[build]
-  command = "mkdir -p _site && cp catalogue-upload.html index.html manage.html script.js store-data.js styles.css wishlist.html _site/"
-  publish = "_site"
