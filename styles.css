@@ -68,6 +68,17 @@ img { width: 100%; display: block; }
   position: relative;
 }
 .icon-button svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.backend-tools .icon-button {
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+}
+.backend-tools .icon-button:hover,
+.backend-tools .icon-button:focus-visible {
+  background: var(--sand);
+  border-color: var(--line);
+}
 .cart-count {
   position: absolute;
   right: 2px;
