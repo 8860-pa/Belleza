@@ -249,7 +249,7 @@ async function initializeVendorPage() {
   }
   if (!client) {
     vendorAuthForm.hidden = true;
-    showAuthMessage("Supabase is not configured. Add the project URL and public anon key before submitting catalogues.");
+    showAuthMessage("Supabase is not configured. Add the project URL and public publishable key before submitting catalogues.");
     return;
   }
 

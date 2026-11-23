@@ -29,13 +29,13 @@ jobs:
       - name: Configure Supabase client
         env:
           SUPABASE_URL: ${{ vars.BELLEZA_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.BELLEZA_SUPABASE_ANON_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.BELLEZA_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "::error::Set BELLEZA_SUPABASE_URL and BELLEZA_SUPABASE_ANON_KEY repository variables."
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Set BELLEZA_SUPABASE_URL and BELLEZA_SUPABASE_PUBLISHABLE_KEY repository variables."
             exit 1
           fi
-          config="$(jq -cn --arg url "$SUPABASE_URL" --arg anonKey "$SUPABASE_ANON_KEY" '{url: $url, anonKey: $anonKey}')"
+          config="$(jq -cn --arg url "$SUPABASE_URL" --arg publishableKey "$SUPABASE_PUBLISHABLE_KEY" '{url: $url, publishableKey: $publishableKey}')"
           printf 'window.BELLEZA_SUPABASE_CONFIG = %s;\n' "$config" > supabase-config.js
       - name: Prepare static site
         run: |

@@ -278,7 +278,7 @@ async function initializeAdminPage() {
   }
   if (!client) {
     loginForm.hidden = true;
-    showAuthMessage("Supabase is not configured. Add the project URL and public anon key before using product administration.");
+    showAuthMessage("Supabase is not configured. Add the project URL and public publishable key before using product administration.");
     return;
   }
 

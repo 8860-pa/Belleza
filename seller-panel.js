@@ -168,7 +168,7 @@ async function initializeSellerPanel() {
   }
   if (!client) {
     sellerAuthForm.hidden = true;
-    setAuthMessage("Supabase is not configured. Add the project URL and public anon key before using the seller panel.");
+    setAuthMessage("Supabase is not configured. Add the project URL and public publishable key before using the seller panel.");
     return;
   }
 
