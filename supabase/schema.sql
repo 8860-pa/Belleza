@@ -1,12 +1,22 @@
 create table if not exists public.products (
   id text primary key,
   name text not null,
-  category text not null check (category in ('home', 'wellness', 'carry')),
+  category text not null check (category in (
+    'home', 'wellness', 'carry', 'mobile-accessories', 'charger-case',
+    'key-chain', 'humidifier', 'massager', 't-shirts'
+  )),
   price numeric(12, 2) not null check (price > 0),
   image text not null,
   badge text not null default '',
   sort_order integer not null default 100
 );
+
+alter table public.products drop constraint if exists products_category_check;
+alter table public.products add constraint products_category_check
+  check (category in (
+    'home', 'wellness', 'carry', 'mobile-accessories', 'charger-case',
+    'key-chain', 'humidifier', 'massager', 't-shirts'
+  ));
 
 create table if not exists public.product_admins (
   user_id uuid primary key references auth.users(id) on delete cascade,

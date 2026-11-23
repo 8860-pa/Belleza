@@ -210,17 +210,20 @@ ordersBody.addEventListener("click", async (event) => {
 
 function renderProducts() {
   document.getElementById("productCount").textContent = `(${products.length})`;
-  productsBody.innerHTML = products.length ? products.map((product) => `
-    <tr>
-      <td><div class="product-cell"><img class="product-thumb" src="${escapeHtml(product.image)}" alt="" /><span>${escapeHtml(product.name)}</span></div></td>
-      <td>${escapeHtml(product.category)}</td>
-      <td>${window.BELLEZAStore.formatPrice(product.price)}</td>
-      <td><div class="actions">
-        <button class="action-button" type="button" data-edit="${escapeHtml(product.id)}">Edit</button>
-        <button class="action-button delete" type="button" data-delete="${escapeHtml(product.id)}">Delete</button>
-      </div></td>
-    </tr>
-  `).join("") : '<tr><td class="empty-state" colspan="4">No products yet. Add one to get started.</td></tr>';
+  productsBody.innerHTML = products.length ? products.map((product) => {
+    const category = window.BELLEZAStore.categories.find((item) => item.value === product.category);
+    return `
+      <tr>
+        <td><div class="product-cell"><img class="product-thumb" src="${escapeHtml(product.image)}" alt="" /><span>${escapeHtml(product.name)}</span></div></td>
+        <td>${escapeHtml(category ? category.label : product.category)}</td>
+        <td>${window.BELLEZAStore.formatPrice(product.price)}</td>
+        <td><div class="actions">
+          <button class="action-button" type="button" data-edit="${escapeHtml(product.id)}">Edit</button>
+          <button class="action-button delete" type="button" data-delete="${escapeHtml(product.id)}">Delete</button>
+        </div></td>
+      </tr>
+    `;
+  }).join("") : '<tr><td class="empty-state" colspan="4">No products yet. Add one to get started.</td></tr>';
 }
 
 function resetProductForm() {
