@@ -12,52 +12,52 @@
       .upload-main { min-height: calc(100vh - 116px); display: grid; grid-template-columns: 38% 62%; }
       .upload-copy { display: flex; flex-direction: column; justify-content: center; padding: 70px 12%; border-right: 1px solid var(--line); }
       .upload-copy h1 { font-size: clamp(42px, 5vw, 68px); margin-bottom: 24px; }
-      .upload-copy p:not(.eyebrow) { color: #62665f; line-height: 1.7; max-width: 390px; }
-      .upload-workspace { display: flex; align-items: center; justify-content: center; padding: 60px 7%; background: #efede6; }
+      .upload-copy p:not(.eyebrow) { color: #b6bad0; line-height: 1.7; max-width: 390px; }
+      .upload-workspace { display: flex; align-items: center; justify-content: center; padding: 60px 7%; background: #111629; }
       .upload-card { width: min(680px, 100%); }
-      .vendor-auth { width: 100%; padding: 28px; background: white; }
+      .vendor-auth { width: 100%; padding: 28px; background: var(--white); border: 1px solid var(--line); }
       .vendor-auth h2 { margin: 0 0 12px; font-size: 24px; }
-      .vendor-auth > p { color: #777b72; font-size: 13px; line-height: 1.6; }
+      .vendor-auth > p { color: #a8add0; font-size: 13px; line-height: 1.6; }
       .vendor-auth-form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
       .secondary-button { min-height: 46px; padding: 0 18px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
-      .vendor-auth-message { min-height: 20px; margin: 14px 0 0; color: #62665f; font-size: 13px; }
+      .vendor-auth-message { min-height: 20px; margin: 14px 0 0; color: #b6bad0; font-size: 13px; }
       .vendor-session { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
       .vendor-session[hidden] { display: none; }
-      .vendor-session p { margin: 0; color: #777b72; font-size: 12px; }
+      .vendor-session p { margin: 0; color: #a8add0; font-size: 12px; }
       .catalogue-form { width: 100%; }
       .catalogue-form[hidden] { display: none; }
-      .form-intro { margin: 0 0 20px; font-size: 13px; color: #777b72; }
+      .form-intro { margin: 0 0 20px; font-size: 13px; color: #a8add0; }
       .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
       .form-field { display: flex; flex-direction: column; gap: 7px; }
       .form-field.full { grid-column: 1 / -1; }
       .form-field label { font-size: 12px; font-weight: 600; }
       .form-field input, .form-field select, .form-field textarea {
-        width: 100%; min-height: 44px; border: 1px solid var(--line); background: white;
+        width: 100%; min-height: 44px; border: 1px solid var(--line); background: #0b0f1d;
         color: var(--ink); padding: 10px 12px; outline-color: var(--ink);
       }
       .form-field textarea { min-height: 100px; resize: vertical; }
-      .form-field small { color: #85887f; font-size: 11px; }
+      .form-field small { color: #a8add0; font-size: 11px; }
       .drop-zone {
-        min-height: 330px; border: 1px dashed #9d9f96; background: rgba(255,255,255,.58);
+        min-height: 330px; border: 1px dashed #7869b7; background: rgba(8,10,20,.62);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         text-align: center; cursor: pointer; transition: .2s ease;
       }
-      .drop-zone.dragging { border-color: var(--ink); background: #fff; transform: scale(1.01); }
-      .upload-icon { width: 54px; height: 54px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px; background: white; font-size: 24px; }
+      .drop-zone.dragging { border-color: var(--violet); background: #171d35; transform: scale(1.01); }
+      .upload-icon { width: 54px; height: 54px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px; background: #171d35; font-size: 24px; }
       .drop-zone h2 { margin: 0 0 8px; font-size: 22px; }
-      .drop-zone p { margin: 0 0 22px; color: #777b72; font-size: 13px; }
-      .browse-button { height: 44px; padding: 0 22px; border: 1px solid var(--ink); background: var(--ink); color: white; cursor: pointer; }
+      .drop-zone p { margin: 0 0 22px; color: #a8add0; font-size: 13px; }
+      .browse-button { height: 44px; padding: 0 22px; border: 1px solid var(--violet); background: linear-gradient(100deg, #8b6cff, #62cfff); color: #080a14; font-weight: 700; cursor: pointer; }
       #catalogueFiles { display: none; }
       .file-label { margin: 0 0 10px; font-size: 12px; font-weight: 600; }
       .file-list { margin-top: 16px; }
-      .file-row { display: grid; grid-template-columns: 1fr auto; align-items: center; background: white; border: 1px solid var(--line); margin-bottom: 8px; padding: 14px 16px; }
+      .file-row { display: grid; grid-template-columns: 1fr auto; align-items: center; background: var(--white); border: 1px solid var(--line); margin-bottom: 8px; padding: 14px 16px; }
       .file-details strong { display: block; font-size: 14px; margin-bottom: 3px; }
-      .file-details span, .upload-status { color: #85887f; font-size: 12px; }
-      .remove-file { border: 0; background: transparent; cursor: pointer; color: #85887f; font-size: 20px; }
+      .file-details span, .upload-status { color: #a8add0; font-size: 12px; }
+      .remove-file { border: 0; background: transparent; cursor: pointer; color: #a8add0; font-size: 20px; }
       .upload-status { min-height: 20px; margin: 14px 0 0; }
-      .submit-catalogue { width: 100%; height: 50px; margin-top: 12px; border: 0; background: var(--ink); color: white; cursor: pointer; }
-      .submit-catalogue:hover { background: #383d35; }
-      .storage-note { margin: 12px 0 0; color: #777b72; font-size: 11px; line-height: 1.5; }
+      .submit-catalogue { width: 100%; height: 50px; margin-top: 12px; border: 0; background: linear-gradient(100deg, #8b6cff, #62cfff); color: #080a14; font-weight: 700; cursor: pointer; }
+      .submit-catalogue:hover { filter: brightness(1.08); }
+      .storage-note { margin: 12px 0 0; color: #a8add0; font-size: 11px; line-height: 1.5; }
       .back-link { margin-bottom: 38px; }
       @media (max-width: 900px) {
         .upload-main { grid-template-columns: 1fr; }
