@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .checkout-main { max-width: 1120px; min-height: calc(100vh - 116px); margin: auto; padding: 64px 4.5% 90px; }
+      .checkout-heading { margin-bottom: 32px; }
+      .checkout-heading .eyebrow { margin-bottom: 10px; }
+      .checkout-heading h1 { margin: 0; font-size: clamp(38px, 5vw, 58px); }
+      .checkout-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 24px; align-items: start; }
+      .checkout-card { padding: 26px; border: 1px solid var(--line); background: white; }
+      .checkout-card h2 { margin: 0 0 20px; font-size: 22px; }
+      .checkout-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .checkout-field { display: flex; flex-direction: column; gap: 7px; }
+      .checkout-field.full { grid-column: 1 / -1; }
+      .checkout-field label { font-size: 12px; font-weight: 600; }
+      .checkout-field input, .checkout-field textarea { width: 100%; min-height: 44px; border: 1px solid var(--line); padding: 10px 12px; background: white; color: var(--ink); }
+      .checkout-field textarea { min-height: 88px; resize: vertical; }
+      .checkout-items { display: grid; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+      .checkout-item { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+      .checkout-item p { margin: 4px 0 0; color: #777b72; font-size: 12px; }
+      .checkout-totals { display: grid; gap: 10px; margin: 18px 0; }
+      .checkout-total-row { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+      .checkout-note { color: #62665f; font-size: 12px; line-height: 1.6; }
+      .payment-option { display: flex; gap: 10px; align-items: flex-start; padding: 14px; border: 1px solid var(--line); margin: 10px 0; font-size: 13px; }
+      .payment-option input { margin-top: 2px; accent-color: var(--ink); }
+      .payment-option.disabled { color: #777b72; background: #f7f6f2; }
+      .checkout-submit { width: 100%; min-height: 50px; border: 0; margin-top: 12px; background: var(--ink); color: white; cursor: pointer; }
+      .checkout-submit:disabled { cursor: not-allowed; opacity: .55; }
+      .checkout-message { min-height: 22px; margin: 14px 0 0; color: #9c4a3e; font-size: 13px; line-height: 1.5; }
+      .checkout-confirmation { padding: 32px; border: 1px solid var(--line); background: white; }
+      .checkout-confirmation[hidden] { display: none; }
+      .checkout-confirmation h2 { margin-top: 0; }
+      .checkout-back { display: inline-block; margin-top: 12px; color: var(--ink); text-underline-offset: 3px; }
+      @media (max-width: 760px) {
+        .checkout-main { padding: 44px 20px 70px; }
+        .checkout-layout { grid-template-columns: 1fr; }
+        .checkout-card { padding: 20px; }
+      }
+      @media (max-width: 480px) {
+        .checkout-fields { grid-template-columns: 1fr; }
+        .checkout-field.full { grid-column: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">Checkout · Cash on delivery</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Checkout navigation">
+        <a href="index.html#shop">Continue shopping</a>
+      </nav>
+    </header>
+
+    <main class="checkout-main">
+      <div class="checkout-heading">
+        <p class="eyebrow">Your order</p>
+        <h1>Checkout.</h1>
+      </div>
+
+      <form class="checkout-layout" id="checkoutForm">
+        <section class="checkout-card">
+          <h2>Delivery details</h2>
+          <div class="checkout-fields">
+            <div class="checkout-field">
+              <label for="customerName">Full name *</label>
+              <input id="customerName" name="customerName" autocomplete="name" maxlength="120" required />
+            </div>
+            <div class="checkout-field">
+              <label for="customerPhone">Phone number *</label>
+              <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() -]{10,18}" maxlength="18" required />
+            </div>
+            <div class="checkout-field full">
+              <label for="customerEmail">Email *</label>
+              <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" maxlength="254" required />
+            </div>
+            <div class="checkout-field full">
+              <label for="deliveryAddress">Address *</label>
+              <textarea id="deliveryAddress" name="deliveryAddress" autocomplete="street-address" maxlength="500" required></textarea>
+            </div>
+            <div class="checkout-field">
+              <label for="deliveryCity">City *</label>
+              <input id="deliveryCity" name="deliveryCity" autocomplete="address-level2" maxlength="100" required />
+            </div>
+            <div class="checkout-field">
+              <label for="deliveryState">State *</label>
+              <input id="deliveryState" name="deliveryState" autocomplete="address-level1" maxlength="100" required />
+            </div>
+            <div class="checkout-field">
+              <label for="deliveryPostalCode">PIN code *</label>
+              <input id="deliveryPostalCode" name="deliveryPostalCode" inputmode="numeric" autocomplete="postal-code" pattern="[0-9]{6}" maxlength="6" required />
+            </div>
+            <div class="checkout-field full">
+              <label for="deliveryNotes">Delivery instructions (optional)</label>
+              <textarea id="deliveryNotes" name="deliveryNotes" maxlength="500" placeholder="Landmark, preferred delivery time, or other helpful details"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <aside class="checkout-card">
+          <h2>Order summary</h2>
+          <div class="checkout-items" id="checkoutItems">
+            <p class="checkout-note">Loading your cart…</p>
+          </div>
+          <div class="checkout-totals">
+            <div class="checkout-total-row"><span>Items subtotal</span><strong id="checkoutSubtotal">₹0</strong></div>
+            <div class="checkout-total-row"><span>Delivery</span><strong>Confirmed after order</strong></div>
+          </div>
+          <p class="checkout-note">BELLEZA will confirm delivery charges and availability before dispatch. The amount shown is the items subtotal; delivery charges are not included.</p>
+
+          <h2 style="margin-top:24px">Payment</h2>
+          <label class="payment-option">
+            <input type="radio" name="paymentMethod" value="cash_on_delivery" checked />
+            <span><strong>Cash on delivery</strong><br />Pay when your order arrives. Delivery charges will be confirmed before dispatch.</span>
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="paymentMethod" value="razorpay" />
+            <span><strong>Pay online with Razorpay</strong><br />UPI, cards, and netbanking through Razorpay Checkout. Online payment requires BELLEZA gateway credentials to be configured.</span>
+          </label>
+          <p class="checkout-note">Online payment covers the items subtotal. Delivery charges will be confirmed separately and paid on delivery.</p>
+
+          <button class="checkout-submit" id="placeOrderButton" type="submit">Place cash-on-delivery order</button>
+          <p class="checkout-message" id="checkoutMessage" role="status" aria-live="polite"></p>
+        </aside>
+      </form>
+
+      <section class="checkout-confirmation" id="orderConfirmation" hidden>
+        <p class="eyebrow">Order received</p>
+        <h2>Thank you for your order.</h2>
+        <p id="confirmationDetails"></p>
+        <p id="confirmationPaymentDetails"></p>
+        <a class="checkout-back" href="index.html">Continue shopping ↗</a>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="store-data.js"></script>
+    <script src="checkout.js"></script>
+  </body>
+</html>

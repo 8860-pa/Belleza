@@ -13,7 +13,8 @@
       .admin-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 36px; }
       .admin-heading .eyebrow { margin-bottom: 12px; }
       .admin-heading h1 { font-size: clamp(40px, 5vw, 62px); margin: 0; }
-      .admin-panel { max-width: 720px; padding: 28px; border: 1px solid var(--line); background: white; }
+      .admin-panel { max-width: 1120px; padding: 28px; border: 1px solid var(--line); background: white; }
+      #loginPanel { max-width: 720px; }
       .admin-panel[hidden], .product-form[hidden] { display: none; }
       .admin-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin: 24px 0; }
       .admin-tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 14px 18px; color: #777b72; cursor: pointer; }
@@ -41,6 +42,10 @@
       .catalogue-details { display: block; max-width: 360px; margin-top: 5px; color: #777b72; font-size: 11px; line-height: 1.5; }
       .file-link { display: block; margin: 3px 0; color: var(--ink); font-size: 12px; text-underline-offset: 3px; }
       .file-link.unavailable { color: #9c4a3e; text-decoration: none; }
+      .order-details { display: block; min-width: 190px; margin-top: 5px; color: #777b72; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+      .order-items { min-width: 160px; color: #62665f; font-size: 12px; line-height: 1.6; }
+      .order-controls { display: grid; min-width: 150px; gap: 7px; }
+      .order-controls select { min-height: 34px; border: 1px solid var(--line); padding: 5px 8px; background: white; color: var(--ink); }
       .actions { display: flex; justify-content: flex-end; gap: 8px; }
       .action-button { border: 0; background: transparent; padding: 6px; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
       .action-button.delete { color: #9c4a3e; }
@@ -111,6 +116,7 @@
         <div class="admin-tabs" role="tablist" aria-label="Admin sections">
           <button class="admin-tab active" id="productsTab" type="button" role="tab" aria-selected="true" aria-controls="productsPanel" data-panel="productsPanel">Products</button>
           <button class="admin-tab" id="cataloguesTab" type="button" role="tab" aria-selected="false" aria-controls="cataloguesPanel" data-panel="cataloguesPanel">Catalogue submissions</button>
+          <button class="admin-tab" id="ordersTab" type="button" role="tab" aria-selected="false" aria-controls="ordersPanel" data-panel="ordersPanel">Orders</button>
         </div>
         <section class="admin-subpanel" id="productsPanel" role="tabpanel" aria-labelledby="productsTab">
           <div class="admin-toolbar">
@@ -166,6 +172,20 @@
             <table class="manage-table">
               <thead><tr><th>Catalogue</th><th>Vendor</th><th>Category</th><th>Submitted</th><th>Files</th><th><span class="sr-only">Actions</span></th></tr></thead>
               <tbody id="cataloguesBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="admin-subpanel" id="ordersPanel" role="tabpanel" aria-labelledby="ordersTab" hidden>
+          <div class="admin-toolbar">
+            <h2>Customer orders <span id="orderCount"></span></h2>
+            <button class="secondary-button" id="refreshOrdersButton" type="button">Refresh</button>
+          </div>
+          <p class="admin-note">Delivery addresses and contact details are visible only to product admins. Confirm delivery charges with the customer before dispatch.</p>
+          <p class="admin-message" id="ordersMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Order</th><th>Delivery details</th><th>Items</th><th>Subtotal</th><th>Payment</th><th>Status</th></tr></thead>
+              <tbody id="ordersBody"></tbody>
             </table>
           </div>
         </section>

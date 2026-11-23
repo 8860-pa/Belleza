@@ -1,4 +1,5 @@
-const cart = [];
+const cartStorageKey = "belleza.cart";
+const cart = readCart();
 
 const searchBar = document.getElementById("searchBar");
 const searchInput = document.getElementById("searchInput");
@@ -8,6 +9,27 @@ const overlay = document.getElementById("overlay");
 let productCards = [];
 let products = [];
 let wishlist = window.BELLEZAStore.getWishlist();
+
+function readCart() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(cartStorageKey) || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved.filter((item) =>
+      item &&
+      typeof item.id === "string" &&
+      Number.isInteger(item.quantity) &&
+      item.quantity > 0 &&
+      item.quantity <= 99
+    );
+  } catch (error) {
+    console.error("Could not restore the BELLEZA cart.", error);
+    return [];
+  }
+}
+
+function saveCart() {
+  sessionStorage.setItem(cartStorageKey, JSON.stringify(cart));
+}
 
 function escapeHtml(value) {
   const element = document.createElement("div");
@@ -30,7 +52,7 @@ function renderProducts() {
           <div><p class="product-category">${escapeHtml(categoryLabel)}</p><h3>${escapeHtml(product.name)}</h3></div>
           <p class="price">${window.BELLEZAStore.formatPrice(product.price)}</p>
         </div>
-        <button class="add-button" data-name="${escapeHtml(product.name)}" data-price="${Number(product.price)}">Add to cart</button>
+        <button class="add-button" data-product-id="${escapeHtml(product.id)}">Add to cart</button>
       </article>
     `;
   }).join("");
@@ -44,6 +66,7 @@ async function loadProducts() {
   try {
     products = await window.BELLEZAStore.getProducts();
     renderProducts();
+    renderCart();
   } catch (error) {
     productGrid.innerHTML = '<p class="empty-cart">Products could not be loaded. Please try again later.</p>';
     console.error("Could not load BELLEZA products.", error);
@@ -63,7 +86,14 @@ function bindProductActions() {
   });
   document.querySelectorAll(".add-button").forEach((button) => {
     button.addEventListener("click", () => {
-      cart.push({ name: button.dataset.name, price: Number(button.dataset.price) });
+      const productId = button.dataset.productId;
+      const existing = cart.find((item) => item.id === productId);
+      if (existing) {
+        existing.quantity = Math.min(existing.quantity + 1, 99);
+      } else {
+        cart.push({ id: productId, quantity: 1 });
+      }
+      saveCart();
       renderCart();
       openCart();
     });
@@ -132,30 +162,43 @@ document.getElementById("cartClose").addEventListener("click", closeCart);
 overlay.addEventListener("click", closeCart);
 
 function renderCart() {
-  const count = cart.length;
+  const count = cart.reduce((total, item) => total + item.quantity, 0);
   document.getElementById("cartCount").textContent = count;
   document.getElementById("cartTitleCount").textContent = `(${count})`;
   const cartItems = document.getElementById("cartItems");
   if (!count) {
     cartItems.innerHTML = '<p class="empty-cart">Your cart is currently empty.</p>';
   } else {
-    cartItems.innerHTML = cart.map((item, index) => `
+    cartItems.innerHTML = cart.map((item, index) => {
+      const product = products.find((candidate) => candidate.id === item.id);
+      return `
       <div class="cart-row">
-        <div><h3>${item.name}</h3><p>${window.BELLEZAStore.formatPrice(item.price)}</p></div>
-        <button class="remove-item" data-index="${index}" aria-label="Remove ${item.name}">×</button>
+        <div><h3>${escapeHtml(product?.name || "Unavailable product")}</h3><p>${product ? window.BELLEZAStore.formatPrice(product.price) : "No longer available"} · Qty ${item.quantity}</p></div>
+        <button class="remove-item" data-index="${index}" aria-label="Remove ${escapeHtml(product?.name || "unavailable product")}">×</button>
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
   document.getElementById("subtotal").textContent = window.BELLEZAStore.formatPrice(
-    cart.reduce((sum, item) => sum + item.price, 0)
+    cart.reduce((sum, item) => {
+      const product = products.find((candidate) => candidate.id === item.id);
+      return sum + (product ? Number(product.price) * item.quantity : 0);
+    }, 0)
   );
   document.querySelectorAll(".remove-item").forEach((button) => {
     button.addEventListener("click", () => {
       cart.splice(Number(button.dataset.index), 1);
+      saveCart();
       renderCart();
     });
   });
 }
+
+document.getElementById("checkoutButton").addEventListener("click", () => {
+  if (!cart.length) return;
+  saveCart();
+  window.location.href = "checkout.html";
+});
 
 document.getElementById("newsletter").addEventListener("submit", (event) => {
   event.preventDefault();

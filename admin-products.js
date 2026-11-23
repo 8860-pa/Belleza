@@ -8,6 +8,8 @@ const productMessage = document.getElementById("productMessage");
 const productsBody = document.getElementById("productsBody");
 const catalogueMessage = document.getElementById("catalogueMessage");
 const cataloguesBody = document.getElementById("cataloguesBody");
+const ordersMessage = document.getElementById("ordersMessage");
+const ordersBody = document.getElementById("ordersBody");
 let products = [];
 let editingId = null;
 
@@ -124,6 +126,45 @@ async function loadCatalogues() {
   }
 }
 
+async function loadOrders() {
+  ordersMessage.textContent = "Loading customer orders…";
+  const { data, error } = await client
+    .from("orders")
+    .select("id,customer_name,customer_email,customer_phone,delivery_address,delivery_city,delivery_state,delivery_postal_code,delivery_notes,items,subtotal,payment_method,payment_status,status,created_at")
+    .order("created_at", { ascending: false });
+  if (error) {
+    ordersMessage.textContent = `Could not load customer orders: ${error.message}`;
+    return;
+  }
+
+  const orderStatuses = ["pending", "confirmed", "packed", "shipped", "delivered", "cancelled"];
+  const paymentStatuses = ["due", "pending", "paid", "failed", "refunded"];
+  ordersBody.innerHTML = data.length ? data.map((order) => {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemDetails = items.map((item) =>
+      `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`
+    ).join("<br>");
+    const created = new Date(order.created_at);
+    const dateLabel = Number.isNaN(created.getTime())
+      ? "Unknown date"
+      : new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(created);
+    return `<tr>
+      <td><strong>#${escapeHtml(order.id.slice(0, 8).toUpperCase())}</strong><span class="order-details">${dateLabel}</span></td>
+      <td><strong>${escapeHtml(order.customer_name)}</strong><span class="order-details">${escapeHtml(order.delivery_address)}<br>${escapeHtml(order.delivery_city)}, ${escapeHtml(order.delivery_state)} ${escapeHtml(order.delivery_postal_code)}<br><a href="tel:${encodeURIComponent(order.customer_phone)}">${escapeHtml(order.customer_phone)}</a> · <a href="mailto:${encodeURIComponent(order.customer_email)}">${escapeHtml(order.customer_email)}</a>${order.delivery_notes ? `<br>Note: ${escapeHtml(order.delivery_notes)}` : ""}</span></td>
+      <td><div class="order-items">${itemDetails}</div></td>
+      <td>${window.BELLEZAStore.formatPrice(order.subtotal)}<span class="order-details">Delivery fee to confirm</span></td>
+      <td>${order.payment_method === "razorpay" ? "Razorpay" : "Cash on delivery"}<span class="order-details">Payment: ${escapeHtml(order.payment_status)}</span></td>
+      <td><div class="order-controls">
+        <select data-order-status aria-label="Order status for ${escapeHtml(order.id.slice(0, 8))}">${orderStatuses.map((status) => `<option value="${status}"${status === order.status ? " selected" : ""}>${status}</option>`).join("")}</select>
+        <select data-payment-status aria-label="Payment status for ${escapeHtml(order.id.slice(0, 8))}">${paymentStatuses.map((status) => `<option value="${status}"${status === order.payment_status ? " selected" : ""}>Payment: ${status}</option>`).join("")}</select>
+        <button class="action-button" type="button" data-save-order="${escapeHtml(order.id)}">Save status</button>
+      </div></td>
+    </tr>`;
+  }).join("") : '<tr><td class="empty-state" colspan="6">No customer orders yet.</td></tr>';
+  document.getElementById("orderCount").textContent = `(${data.length})`;
+  ordersMessage.textContent = "";
+}
+
 document.querySelectorAll(".admin-tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".admin-tab").forEach((item) => {
@@ -135,10 +176,37 @@ document.querySelectorAll(".admin-tab").forEach((tab) => {
       panel.hidden = panel.id !== tab.dataset.panel;
     });
     if (tab.dataset.panel === "cataloguesPanel") loadCatalogues();
+    if (tab.dataset.panel === "ordersPanel") loadOrders();
   });
 });
 
 document.getElementById("refreshCataloguesButton").addEventListener("click", loadCatalogues);
+document.getElementById("refreshOrdersButton").addEventListener("click", loadOrders);
+
+ordersBody.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-save-order]");
+  if (!button) return;
+
+  const row = button.closest("tr");
+  button.disabled = true;
+  ordersMessage.textContent = "Saving order status…";
+  const { error } = await client
+    .from("orders")
+    .update({
+      status: row.querySelector("[data-order-status]").value,
+      payment_status: row.querySelector("[data-payment-status]").value
+    })
+    .eq("id", button.dataset.saveOrder)
+    .select("id")
+    .single();
+  button.disabled = false;
+  if (error) {
+    ordersMessage.textContent = `Could not update order status: ${error.message}`;
+    return;
+  }
+
+  ordersMessage.textContent = "Order status saved.";
+});
 
 function renderProducts() {
   document.getElementById("productCount").textContent = `(${products.length})`;
