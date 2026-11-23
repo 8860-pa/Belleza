@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="announcement">Free shipping on orders over $75</div>
+    <div class="announcement">Free shipping on orders over ₹75</div>
     <header class="header">
       <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
       <nav class="nav" aria-label="Primary navigation">
@@ -82,7 +82,7 @@
                   <p class="product-category">${escapeHtml(category ? category.label : product.category)}</p>
                   <h3>${escapeHtml(product.name)}</h3>
                 </div>
-                <p class="price">$${Number(product.price).toFixed(2).replace(/\.00$/, "")}</p>
+                <p class="price">${window.BELLEZAStore.formatPrice(product.price)}</p>
               </div>
               <button class="wishlist-remove" type="button" data-remove="${escapeHtml(product.id)}">Remove from wishlist</button>
             </article>

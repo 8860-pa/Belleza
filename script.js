@@ -28,7 +28,7 @@ function renderProducts() {
         </div>
         <div class="product-info">
           <div><p class="product-category">${escapeHtml(categoryLabel)}</p><h3>${escapeHtml(product.name)}</h3></div>
-          <p class="price">$${Number(product.price).toFixed(2).replace(/\.00$/, "")}</p>
+          <p class="price">${window.BELLEZAStore.formatPrice(product.price)}</p>
         </div>
         <button class="add-button" data-name="${escapeHtml(product.name)}" data-price="${Number(product.price)}">Add to cart</button>
       </article>
@@ -131,12 +131,14 @@ function renderCart() {
   } else {
     cartItems.innerHTML = cart.map((item, index) => `
       <div class="cart-row">
-        <div><h3>${item.name}</h3><p>$${item.price}</p></div>
+        <div><h3>${item.name}</h3><p>${window.BELLEZAStore.formatPrice(item.price)}</p></div>
         <button class="remove-item" data-index="${index}" aria-label="Remove ${item.name}">×</button>
       </div>
     `).join("");
   }
-  document.getElementById("subtotal").textContent = `$${cart.reduce((sum, item) => sum + item.price, 0)}`;
+  document.getElementById("subtotal").textContent = window.BELLEZAStore.formatPrice(
+    cart.reduce((sum, item) => sum + item.price, 0)
+  );
   document.querySelectorAll(".remove-item").forEach((button) => {
     button.addEventListener("click", () => {
       cart.splice(Number(button.dataset.index), 1);

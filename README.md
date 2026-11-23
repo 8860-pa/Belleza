@@ -13,3 +13,5 @@ The GitHub Actions workflow in `.github/workflows/pages.yml` publishes the store
 ## Data and security
 
 The product manager, wishlist, and catalogue form store data in the current browser's `localStorage`; they are not shared across devices and are not protected by server-side authentication. Catalogue files are not uploaded or persisted. A secure backend and file-storage service are needed for shared administration, real file uploads, or checkout.
+
+All product prices are formatted in INR. Existing numeric prices are treated as rupees; they are not converted from USD.
