@@ -1,6 +1,5 @@
 (() => {
   const productKey = "belleza.products";
-  const catalogueKey = "belleza.catalogues";
   const wishlistKey = "belleza.wishlist";
   const currencyFormatter = new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -45,8 +44,6 @@
 
   window.BELLEZAStore = {
     getProducts,
-    getCatalogues: () => readList(catalogueKey, []),
-    saveCatalogues: (catalogues) => writeList(catalogueKey, catalogues),
     getWishlist: () => readList(wishlistKey, []),
     saveWishlist: (wishlist) => writeList(wishlistKey, wishlist),
     formatPrice: (price) => currencyFormatter.format(Number(price)),

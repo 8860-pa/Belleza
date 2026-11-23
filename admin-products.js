@@ -6,13 +6,15 @@ const adminPanel = document.getElementById("adminPanel");
 const productForm = document.getElementById("productForm");
 const productMessage = document.getElementById("productMessage");
 const productsBody = document.getElementById("productsBody");
+const catalogueMessage = document.getElementById("catalogueMessage");
+const cataloguesBody = document.getElementById("cataloguesBody");
 let products = [];
 let editingId = null;
 
 function escapeHtml(value) {
   const element = document.createElement("div");
   element.textContent = String(value ?? "");
-  return element.innerHTML;
+  return element.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function showAuthMessage(message) {
@@ -55,6 +57,88 @@ async function loadProducts() {
   renderProducts();
   productMessage.textContent = "";
 }
+
+async function loadCatalogues() {
+  catalogueMessage.textContent = "Loading catalogue submissions…";
+  try {
+    const { data, error } = await client
+      .from("catalogues")
+      .select("id,title,brand,category,season,product_count,description,email,files,created_at,submitter_id")
+      .order("created_at", { ascending: false });
+    if (error) {
+      catalogueMessage.textContent = `Could not load catalogue submissions: ${error.message}`;
+      return;
+    }
+
+    const unavailableFiles = [];
+    const rows = await Promise.all(data.map(async (catalogue) => {
+      const files = Array.isArray(catalogue.files) ? catalogue.files : [];
+      const fileLinks = await Promise.all(files.map(async (file) => {
+        if (!file || typeof file.path !== "string" || !file.path.startsWith(`${catalogue.submitter_id}/`)) {
+          unavailableFiles.push(`${catalogue.title}: invalid file reference`);
+          return `<span class="file-link unavailable">${escapeHtml(file?.name || "Invalid file reference")}</span>`;
+        }
+
+        try {
+          const { data: signedFile, error: signedUrlError } = await client.storage
+            .from("catalogues")
+            .createSignedUrl(file.path, 3600);
+          if (signedUrlError) throw signedUrlError;
+          return `<a class="file-link" href="${escapeHtml(signedFile.signedUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(file.name || "Download file")}</a>`;
+        } catch (signingError) {
+          unavailableFiles.push(`${catalogue.title}: ${signingError.message}`);
+          return `<span class="file-link unavailable">${escapeHtml(file.name || "File unavailable")}</span>`;
+        }
+      }));
+
+      const submitted = new Date(catalogue.created_at);
+      const dateLabel = Number.isNaN(submitted.getTime())
+        ? "Unknown date"
+        : new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(submitted);
+      const details = [
+        catalogue.brand,
+        catalogue.season,
+        catalogue.product_count ? `${catalogue.product_count} products` : "",
+        catalogue.description
+      ].filter(Boolean).map(escapeHtml).join(" · ");
+
+      return `<tr>
+        <td><strong>${escapeHtml(catalogue.title)}</strong><span class="catalogue-details">${details}</span></td>
+        <td>${escapeHtml(catalogue.email)}</td>
+        <td>${escapeHtml(catalogue.category)}</td>
+        <td>${dateLabel}</td>
+        <td>${fileLinks.length ? fileLinks.join("") : '<span class="file-link unavailable">No files listed</span>'}</td>
+        <td><a class="action-button" href="mailto:${encodeURIComponent(catalogue.email)}?subject=${encodeURIComponent(`BELLEZA catalogue: ${catalogue.title}`)}">Contact</a></td>
+      </tr>`;
+    }));
+
+    document.getElementById("catalogueCount").textContent = `(${data.length})`;
+    cataloguesBody.innerHTML = rows.length
+      ? rows.join("")
+      : '<tr><td class="empty-state" colspan="6">No catalogue submissions yet.</td></tr>';
+    catalogueMessage.textContent = unavailableFiles.length
+      ? `${unavailableFiles.length} file${unavailableFiles.length === 1 ? "" : "s"} could not be made available. First error: ${unavailableFiles[0]}`
+      : "";
+  } catch (error) {
+    catalogueMessage.textContent = `Could not load catalogue submissions: ${error.message}`;
+  }
+}
+
+document.querySelectorAll(".admin-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab").forEach((item) => {
+      const active = item === tab;
+      item.classList.toggle("active", active);
+      item.setAttribute("aria-selected", String(active));
+    });
+    document.querySelectorAll(".admin-subpanel").forEach((panel) => {
+      panel.hidden = panel.id !== tab.dataset.panel;
+    });
+    if (tab.dataset.panel === "cataloguesPanel") loadCatalogues();
+  });
+});
+
+document.getElementById("refreshCataloguesButton").addEventListener("click", loadCatalogues);
 
 function renderProducts() {
   document.getElementById("productCount").textContent = `(${products.length})`;

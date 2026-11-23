@@ -15,6 +15,10 @@
       .admin-heading h1 { font-size: clamp(40px, 5vw, 62px); margin: 0; }
       .admin-panel { max-width: 720px; padding: 28px; border: 1px solid var(--line); background: white; }
       .admin-panel[hidden], .product-form[hidden] { display: none; }
+      .admin-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin: 24px 0; }
+      .admin-tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 14px 18px; color: #777b72; cursor: pointer; }
+      .admin-tab.active { border-color: var(--ink); color: var(--ink); font-weight: 600; }
+      .admin-subpanel[hidden] { display: none; }
       .admin-panel h2 { margin: 0 0 16px; font-size: 24px; }
       .admin-note, .admin-message { color: #62665f; font-size: 13px; line-height: 1.6; }
       .admin-message { min-height: 20px; margin: 14px 0 0; }
@@ -34,6 +38,9 @@
       .manage-table tr:last-child td { border-bottom: 0; }
       .product-cell { display: flex; align-items: center; gap: 12px; min-width: 220px; }
       .product-thumb { width: 48px; height: 54px; object-fit: cover; background: var(--sand); }
+      .catalogue-details { display: block; max-width: 360px; margin-top: 5px; color: #777b72; font-size: 11px; line-height: 1.5; }
+      .file-link { display: block; margin: 3px 0; color: var(--ink); font-size: 12px; text-underline-offset: 3px; }
+      .file-link.unavailable { color: #9c4a3e; text-decoration: none; }
       .actions { display: flex; justify-content: flex-end; gap: 8px; }
       .action-button { border: 0; background: transparent; padding: 6px; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
       .action-button.delete { color: #9c4a3e; }
@@ -92,48 +99,67 @@
       <section class="admin-panel" id="adminPanel" hidden>
         <p class="admin-identity" id="adminIdentity"></p>
         <button class="secondary-button" id="signOutButton" type="button">Sign out</button>
-        <div class="admin-toolbar">
-          <h2>Products <span id="productCount"></span></h2>
-          <button class="primary-button" id="addProductButton" type="button">Add product</button>
+        <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+          <button class="admin-tab active" id="productsTab" type="button" role="tab" aria-selected="true" aria-controls="productsPanel" data-panel="productsPanel">Products</button>
+          <button class="admin-tab" id="cataloguesTab" type="button" role="tab" aria-selected="false" aria-controls="cataloguesPanel" data-panel="cataloguesPanel">Catalogue submissions</button>
         </div>
-        <form class="product-form" id="productForm" hidden>
-          <div class="form-field">
-            <label for="productName">Product name *</label>
-            <input id="productName" name="name" required maxlength="100" />
+        <section class="admin-subpanel" id="productsPanel" role="tabpanel" aria-labelledby="productsTab">
+          <div class="admin-toolbar">
+            <h2>Products <span id="productCount"></span></h2>
+            <button class="primary-button" id="addProductButton" type="button">Add product</button>
           </div>
-          <div class="form-field">
-            <label for="productCategory">Category *</label>
-            <select id="productCategory" name="category" required>
-              <option value="">Select category</option>
-              <option value="home">Home</option>
-              <option value="wellness">Wellness</option>
-              <option value="carry">Carry</option>
-            </select>
+          <form class="product-form" id="productForm" hidden>
+            <div class="form-field">
+              <label for="productName">Product name *</label>
+              <input id="productName" name="name" required maxlength="100" />
+            </div>
+            <div class="form-field">
+              <label for="productCategory">Category *</label>
+              <select id="productCategory" name="category" required>
+                <option value="">Select category</option>
+                <option value="home">Home</option>
+                <option value="wellness">Wellness</option>
+                <option value="carry">Carry</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="productPrice">Price (INR) *</label>
+              <input id="productPrice" name="price" type="number" min="0.01" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="productBadge">Badge</label>
+              <input id="productBadge" name="badge" maxlength="24" placeholder="e.g. New" />
+            </div>
+            <div class="form-field full">
+              <label for="productImage">Product image URL *</label>
+              <input id="productImage" name="image" type="url" required placeholder="https://example.com/product.jpg" />
+            </div>
+            <div class="form-actions">
+              <button class="primary-button" id="saveProductButton" type="submit">Save product</button>
+              <button class="secondary-button" id="cancelProductButton" type="button">Cancel</button>
+            </div>
+          </form>
+          <p class="admin-message" id="productMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="productsBody"></tbody>
+            </table>
           </div>
-          <div class="form-field">
-            <label for="productPrice">Price (INR) *</label>
-            <input id="productPrice" name="price" type="number" min="0.01" step="0.01" required />
+        </section>
+        <section class="admin-subpanel" id="cataloguesPanel" role="tabpanel" aria-labelledby="cataloguesTab" hidden>
+          <div class="admin-toolbar">
+            <h2>Catalogue submissions <span id="catalogueCount"></span></h2>
+            <button class="secondary-button" id="refreshCataloguesButton" type="button">Refresh</button>
           </div>
-          <div class="form-field">
-            <label for="productBadge">Badge</label>
-            <input id="productBadge" name="badge" maxlength="24" placeholder="e.g. New" />
+          <p class="admin-message" id="catalogueMessage" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="manage-table">
+              <thead><tr><th>Catalogue</th><th>Vendor</th><th>Category</th><th>Submitted</th><th>Files</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="cataloguesBody"></tbody>
+            </table>
           </div>
-          <div class="form-field full">
-            <label for="productImage">Product image URL *</label>
-            <input id="productImage" name="image" type="url" required placeholder="https://example.com/product.jpg" />
-          </div>
-          <div class="form-actions">
-            <button class="primary-button" id="saveProductButton" type="submit">Save product</button>
-            <button class="secondary-button" id="cancelProductButton" type="button">Cancel</button>
-          </div>
-        </form>
-        <p class="admin-message" id="productMessage" aria-live="polite"></p>
-        <div class="table-wrap">
-          <table class="manage-table">
-            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th><span class="sr-only">Actions</span></th></tr></thead>
-            <tbody id="productsBody"></tbody>
-          </table>
-        </div>
+        </section>
       </section>
     </main>
 
