@@ -8,14 +8,24 @@
     maximumFractionDigits: 2
   });
   const defaults = [
-    { id: "mineral-face-wash", name: "Mineral Face Wash", category: "accessories", price: 28, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85", badge: "Bestseller" },
-    { id: "stoneware-mug", name: "Stoneware Mug", category: "accessories", price: 34, image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85", badge: "" },
-    { id: "canvas-tote", name: "Canvas Tote", category: "accessories", price: 42, image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85", badge: "New" },
-    { id: "botanical-hand-balm", name: "Botanical Hand Balm", category: "accessories", price: 24, image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85", badge: "" }
+    { id: "mineral-face-wash", name: "Mineral Face Wash", category: "accessories", price: 28, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85", images: ["https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85"], badge: "Bestseller" },
+    { id: "stoneware-mug", name: "Stoneware Mug", category: "accessories", price: 34, image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85", images: ["https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85"], badge: "" },
+    { id: "canvas-tote", name: "Canvas Tote", category: "accessories", price: 42, image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85", images: ["https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85"], badge: "New" },
+    { id: "botanical-hand-balm", name: "Botanical Hand Balm", category: "accessories", price: 24, image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85", images: ["https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85"], badge: "" }
   ];
 
+  function normalizeProductImages(product) {
+    const images = Array.isArray(product.images) ? product.images.map((image) =>
+      typeof image === "string" ? { url: image, path: null } : image
+    ).filter((image) => image && typeof image.url === "string") : [];
+    if (!images.length && typeof product.image === "string" && product.image) {
+      images.push({ url: product.image, path: null });
+    }
+    return { ...product, image: product.image || images[0]?.url || "", images };
+  }
+
   function normalizeProductCategories(products) {
-    return products.map((product) => ({
+    return products.map((product) => normalizeProductImages({
       ...product,
       category: ["home", "wellness", "carry"].includes(product.category)
         ? "accessories"
@@ -40,7 +50,7 @@
 
     const { data, error } = await window.BELLEZA_SUPABASE
       .from("products")
-      .select("id,name,category,price,image,badge")
+      .select("id,name,category,price,image,images,badge")
       .order("sort_order")
       .order("name");
     if (error) throw new Error(`Could not load BELLEZA products: ${error.message}`);

@@ -12,13 +12,13 @@ The GitHub Actions workflow in `.github/workflows/pages.yml` publishes the store
 
 ## Data and security
 
-Product data is stored in Supabase and read by the public storefront. Product writes are protected by database row-level security; only users listed in `public.product_admins` can add, edit, or delete products. Wishlists remain local to the current browser. Vendor catalogue metadata is stored in Supabase, and uploaded files are kept in a private Storage bucket.
+Product data is stored in Supabase and read by the public storefront. Product writes are protected by database row-level security; only users listed in `public.product_admins` can manage products. Vendors can submit catalogue details and product listings through the authenticated catalogue form; submitted products appear on the storefront immediately. Product photos are stored in a public image bucket and shown as a gallery. Supporting catalogue files remain in a private Storage bucket.
 
 All product prices are formatted in INR. Existing numeric prices are treated as rupees; they are not converted from USD.
 
 ## Supabase setup
 
-1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor. This creates product, catalogue, and order tables, row-level security policies, the private catalogue-file bucket, the checkout order RPC, and initial product rows. If the project already exists, rerun the updated script to provision checkout.
+1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor. This creates product, catalogue, and order tables, row-level security policies, public product-image and private catalogue-file buckets, the checkout order RPC, and the catalogue/product submission RPC. For an existing project, run `supabase/migrations/20261124_catalogue_products_and_galleries.sql` to add product galleries and connect catalogue submissions to storefront listings.
 2. The public project URL and publishable key are configured in `supabase-config.js` for local preview. The Pages workflow takes the same public settings from GitHub Actions repository variables named `BELLEZA_SUPABASE_URL` and `BELLEZA_SUPABASE_PUBLISHABLE_KEY`. Publishable keys are intended for browser use with RLS enabled; never use a Supabase secret/service-role key in the browser or repository.
 3. Configure Supabase Auth's site URL and redirect allowlist to include the deployed GitHub Pages URL so vendor email confirmation can return to the catalogue page.
 4. Create an admin user in Supabase Auth. In the SQL Editor, grant that user access by inserting their Auth user ID into `public.product_admins`, for example:
@@ -28,8 +28,8 @@ All product prices are formatted in INR. Existing numeric prices are treated as 
    select id from auth.users where email = 'admin@example.com';
    ```
 
-5. Open `admin-products.html` and sign in with the authorized admin account. The Products tab manages storefront items; Catalogue submissions lists vendor uploads and creates short-lived download links for the private files; Orders shows delivery details and lets admins update order and payment status.
-6. Vendors can create an account or sign in at `catalogue-upload.html`, then submit PDF, JPG, PNG, or ZIP files up to 20 MB each. Supabase stores submissions and files; vendors can only upload to their own storage folder, and only admins can view all submissions.
+5. Open `admin-products.html` and sign in with the authorized admin account. The Products tab manages storefront items and photo galleries; Catalogue submissions lists vendor uploads and creates short-lived download links for private files; Orders shows delivery details and lets admins update order and payment status.
+6. Vendors can create an account or sign in at `catalogue-upload.html`, add one or more products with up to eight JPG, PNG, or WebP photos each, and optionally attach supporting catalogue files. A single submission saves the catalogue and its products together; the products are immediately visible in the store. Product photos are limited to 10 MB each, while supporting files are limited to 20 MB each. Vendors can only upload to their own storage folders.
 7. Sellers can sign in at `seller-panel.html` to view their own submissions and open short-lived links to their private catalogue files. The panel relies on the existing authenticated-user RLS policies and does not expose other sellers' submissions.
 
 ## Checkout and payments

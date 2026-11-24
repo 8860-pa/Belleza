@@ -12,6 +12,8 @@ const ordersMessage = document.getElementById("ordersMessage");
 const ordersBody = document.getElementById("ordersBody");
 let products = [];
 let editingId = null;
+let editingProduct = null;
+let adminUserId = null;
 
 function escapeHtml(value) {
   const element = document.createElement("div");
@@ -43,6 +45,7 @@ async function authorizeAdmin(user) {
 
   loginPanel.hidden = true;
   adminPanel.hidden = false;
+  adminUserId = user.id;
   document.getElementById("adminIdentity").textContent = `Signed in as ${user.email}`;
   await loadProducts();
 }
@@ -51,7 +54,7 @@ async function loadProducts() {
   productMessage.textContent = "Loading products…";
   const { data, error } = await client
     .from("products")
-    .select("id,name,category,price,image,badge,sort_order")
+    .select("id,name,category,price,image,images,vendor_id,badge,sort_order")
     .order("sort_order")
     .order("name");
   if (error) throw error;
@@ -230,6 +233,8 @@ function resetProductForm() {
   productForm.reset();
   productForm.hidden = true;
   editingId = null;
+  editingProduct = null;
+  document.getElementById("productImageSelection").textContent = "";
   document.getElementById("saveProductButton").textContent = "Save product";
 }
 
@@ -241,38 +246,78 @@ document.getElementById("addProductButton").addEventListener("click", () => {
 });
 
 document.getElementById("cancelProductButton").addEventListener("click", resetProductForm);
+productForm.elements.images.addEventListener("change", () => {
+  const selectedCount = productForm.elements.images.files.length;
+  const existingCount = editingProduct ? normalizeProductImages(editingProduct).length : 0;
+  document.getElementById("productImageSelection").textContent = [
+    existingCount ? `${existingCount} current photo${existingCount === 1 ? "" : "s"}` : "",
+    selectedCount ? `${selectedCount} new photo${selectedCount === 1 ? "" : "s"} selected` : ""
+  ].filter(Boolean).join("; ");
+});
+
+function normalizeProductImages(product) {
+  const existing = Array.isArray(product.images) ? product.images.map((image) =>
+    typeof image === "string" ? { url: image, path: null } : image
+  ).filter((image) => image && typeof image.url === "string") : [];
+  return existing.length || !product.image ? existing : [{ url: product.image, path: null }];
+}
 
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = new FormData(productForm);
-  const image = new URL(values.get("image"));
-  if (!["http:", "https:"].includes(image.protocol)) {
-    productMessage.textContent = "Enter an image URL that begins with http:// or https://.";
+  const files = productForm.elements.images.files;
+  const existingImages = editingProduct ? normalizeProductImages(editingProduct) : [];
+  if (!files.length && !existingImages.length) {
+    productMessage.textContent = "Choose at least one product photo.";
+    return;
+  }
+  if (existingImages.length + files.length > window.BELLEZAProductImages.maxImages) {
+    productMessage.textContent = `A product can have up to ${window.BELLEZAProductImages.maxImages} photos.`;
     return;
   }
 
+  const productId = editingId || `product-${crypto.randomUUID()}`;
+  let uploadedImages = [];
+  const saveButton = document.getElementById("saveProductButton");
+  saveButton.disabled = true;
   const product = {
-    id: editingId || `product-${crypto.randomUUID()}`,
+    id: productId,
     name: values.get("name").trim(),
     category: values.get("category"),
     price: Number(values.get("price")),
-    badge: values.get("badge").trim(),
-    image: image.href
+    badge: values.get("badge").trim()
   };
 
-  productMessage.textContent = "Saving product…";
-  const { error } = await client.from("products").upsert(product);
-  if (error) {
-    productMessage.textContent = `Could not save product: ${error.message}`;
-    return;
-  }
-
-  productMessage.textContent = "Product saved.";
-  resetProductForm();
   try {
-    await loadProducts();
-  } catch (loadError) {
-    productMessage.textContent = `Product saved, but the product list could not be refreshed: ${loadError.message}`;
+    if (files.length) {
+      uploadedImages = await window.BELLEZAProductImages.upload(client, adminUserId, productId, files);
+    }
+    product.images = [...existingImages, ...uploadedImages];
+    product.image = product.images[0].url;
+    productMessage.textContent = "Saving product…";
+    const { error } = await client.from("products").upsert(product);
+    if (error) throw error;
+
+    productMessage.textContent = "Product saved.";
+    resetProductForm();
+    try {
+      await loadProducts();
+    } catch (loadError) {
+      productMessage.textContent = `Product saved, but the product list could not be refreshed: ${loadError.message}`;
+    }
+  } catch (error) {
+    if (uploadedImages.length) {
+      try {
+        await window.BELLEZAProductImages.remove(client, uploadedImages);
+        productMessage.textContent = `Could not save product: ${error.message}. Uploaded photos were removed.`;
+      } catch (cleanupError) {
+        productMessage.textContent = `Could not save product: ${error.message}. ${cleanupError.message}`;
+      }
+    } else {
+      productMessage.textContent = `Could not save product: ${error.message}`;
+    }
+  } finally {
+    saveButton.disabled = false;
   }
 });
 
@@ -285,11 +330,12 @@ productsBody.addEventListener("click", async (event) => {
 
   if (button.dataset.edit) {
     editingId = product.id;
+    editingProduct = product;
     productForm.elements.name.value = product.name;
     productForm.elements.category.value = product.category;
     productForm.elements.price.value = product.price;
     productForm.elements.badge.value = product.badge || "";
-    productForm.elements.image.value = product.image;
+    document.getElementById("productImageSelection").textContent = `${normalizeProductImages(product).length} current photo${normalizeProductImages(product).length === 1 ? "" : "s"}. New photos will be added to the gallery.`;
     productForm.hidden = false;
     document.getElementById("saveProductButton").textContent = "Update product";
     productForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -303,7 +349,12 @@ productsBody.addEventListener("click", async (event) => {
     productMessage.textContent = `Could not delete product: ${error.message}`;
     return;
   }
-  productMessage.textContent = "Product deleted.";
+  try {
+    await window.BELLEZAProductImages.remove(client, normalizeProductImages(product));
+    productMessage.textContent = "Product deleted.";
+  } catch (cleanupError) {
+    productMessage.textContent = `Product deleted, but some stored photos could not be removed: ${cleanupError.message}`;
+  }
   try {
     await loadProducts();
   } catch (loadError) {
@@ -317,7 +368,8 @@ document.getElementById("signOutButton").addEventListener("click", async () => {
     productMessage.textContent = `Could not sign out: ${error.message}`;
     return;
   }
-  productForm.reset();
+  adminUserId = null;
+  resetProductForm();
   showAuthMessage("You have signed out.");
 });
 
