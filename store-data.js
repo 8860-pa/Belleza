@@ -8,11 +8,20 @@
     maximumFractionDigits: 2
   });
   const defaults = [
-    { id: "mineral-face-wash", name: "Mineral Face Wash", category: "wellness", price: 28, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85", badge: "Bestseller" },
-    { id: "stoneware-mug", name: "Stoneware Mug", category: "home", price: 34, image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85", badge: "" },
-    { id: "canvas-tote", name: "Canvas Tote", category: "carry", price: 42, image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85", badge: "New" },
-    { id: "botanical-hand-balm", name: "Botanical Hand Balm", category: "wellness", price: 24, image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85", badge: "" }
+    { id: "mineral-face-wash", name: "Mineral Face Wash", category: "accessories", price: 28, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85", badge: "Bestseller" },
+    { id: "stoneware-mug", name: "Stoneware Mug", category: "accessories", price: 34, image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85", badge: "" },
+    { id: "canvas-tote", name: "Canvas Tote", category: "accessories", price: 42, image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85", badge: "New" },
+    { id: "botanical-hand-balm", name: "Botanical Hand Balm", category: "accessories", price: 24, image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85", badge: "" }
   ];
+
+  function normalizeProductCategories(products) {
+    return products.map((product) => ({
+      ...product,
+      category: ["home", "wellness", "carry"].includes(product.category)
+        ? "accessories"
+        : product.category
+    }));
+  }
 
   function readList(key, initial) {
     const saved = localStorage.getItem(key);
@@ -27,7 +36,7 @@
 
   async function getProducts() {
     if (window.BELLEZA_SUPABASE_ERROR) throw new Error(window.BELLEZA_SUPABASE_ERROR);
-    if (!window.BELLEZA_SUPABASE) return readList(productKey, defaults);
+    if (!window.BELLEZA_SUPABASE) return normalizeProductCategories(readList(productKey, defaults));
 
     const { data, error } = await window.BELLEZA_SUPABASE
       .from("products")
@@ -35,7 +44,7 @@
       .order("sort_order")
       .order("name");
     if (error) throw new Error(`Could not load BELLEZA products: ${error.message}`);
-    return data.map((product) => ({ ...product, price: Number(product.price) }));
+    return normalizeProductCategories(data.map((product) => ({ ...product, price: Number(product.price) })));
   }
 
   function writeList(key, value) {
@@ -48,9 +57,7 @@
     saveWishlist: (wishlist) => writeList(wishlistKey, wishlist),
     formatPrice: (price) => currencyFormatter.format(Number(price)),
     categories: [
-      { value: "home", label: "Home" },
-      { value: "wellness", label: "Wellness" },
-      { value: "carry", label: "Carry" },
+      { value: "accessories", label: "Accessories" },
       { value: "mobile-accessories", label: "Mobile Accessories" },
       { value: "charger-case", label: "Charger Case" },
       { value: "key-chain", label: "Key Chain" },
