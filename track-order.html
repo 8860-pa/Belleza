@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track your order — BELLEZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="announcement">Order tracking · BELLEZA</div>
+    <header class="header">
+      <a class="brand" href="index.html" aria-label="BELLEZA home">BELLEZA</a>
+      <nav class="nav" aria-label="Order tracking navigation">
+        <a href="index.html#shop">Shop</a>
+        <a href="track-order.html" aria-current="page">Track order</a>
+      </nav>
+    </header>
+
+    <main class="track-main">
+      <div class="track-heading">
+        <p class="eyebrow">Your BELLEZA order</p>
+        <h1>Track your order.</h1>
+        <p>Enter the order reference from checkout, along with the email and phone used for the order.</p>
+      </div>
+
+      <form class="track-form" id="trackOrderForm">
+        <div class="track-field track-field-full">
+          <label for="orderReference">Order reference *</label>
+          <input id="orderReference" name="orderReference" type="text" inputmode="text" autocomplete="off" minlength="36" maxlength="36" pattern="[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required />
+        </div>
+        <div class="track-field">
+          <label for="customerEmail">Order email *</label>
+          <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" maxlength="254" required />
+        </div>
+        <div class="track-field">
+          <label for="customerPhone">Order phone *</label>
+          <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() -]{10,18}" maxlength="18" required />
+        </div>
+        <button class="track-submit track-field-full" id="trackOrderButton" type="submit">Find my order</button>
+      </form>
+      <p class="track-message" id="trackMessage" role="status" aria-live="polite"></p>
+
+      <section class="track-result" id="trackResult" aria-live="polite" hidden></section>
+    </main>
+
+    <footer>
+      <a class="brand footer-brand" href="index.html">BELLEZA</a>
+      <p>Objects for everyday life.<br><a class="footer-email" href="index.html#shop">Continue shopping</a><br><a class="footer-email" href="mailto:bellezaattire@gmail.com">bellezaattire@gmail.com</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="store-data.js"></script>
+    <script src="track-order.js"></script>
+  </body>
+</html>

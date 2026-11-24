@@ -18,7 +18,7 @@ All product prices are formatted in INR. Existing numeric prices are treated as 
 
 ## Supabase setup
 
-1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor. This creates product, catalogue, and order tables, row-level security policies, public product-image and private catalogue-file buckets, the checkout order RPC, and the catalogue/product submission RPC. For an existing project, run `supabase/migrations/20261124_catalogue_products_and_galleries.sql` to add product galleries and connect catalogue submissions to storefront listings.
+1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor. This creates product, catalogue, and order tables, row-level security policies, public product-image and private catalogue-file buckets, and the checkout, catalogue submission, and order tracking RPCs. For an existing project, run `supabase/migrations/20261124_catalogue_products_and_galleries.sql` to add product galleries and connect catalogue submissions to storefront listings, followed by `supabase/migrations/20261124_order_tracking.sql` to enable public customer order tracking.
 2. The public project URL and publishable key are configured in `supabase-config.js` for local preview. The Pages workflow takes the same public settings from GitHub Actions repository variables named `BELLEZA_SUPABASE_URL` and `BELLEZA_SUPABASE_PUBLISHABLE_KEY`. Publishable keys are intended for browser use with RLS enabled; never use a Supabase secret/service-role key in the browser or repository.
 3. Configure Supabase Auth's site URL and redirect allowlist to include the deployed GitHub Pages URL so vendor email confirmation can return to the catalogue page.
 4. Create an admin user in Supabase Auth. In the SQL Editor, grant that user access by inserting their Auth user ID into `public.product_admins`, for example:
@@ -34,7 +34,7 @@ All product prices are formatted in INR. Existing numeric prices are treated as 
 
 ## Checkout and payments
 
-Customers can open checkout from the cart, provide delivery and contact details, and place a cash-on-delivery order. The database recalculates the item subtotal from current product prices; delivery charges are confirmed separately and paid on delivery. Order addresses and contact details are visible only to product admins.
+Customers can open checkout from the cart, provide delivery and contact details, and place a cash-on-delivery order. The database recalculates the item subtotal from current product prices; delivery charges are confirmed separately and paid on delivery. Customers can use the order reference, email, and phone number at `track-order.html` to view their items, delivery destination, payment state, and current fulfillment status. The tracking RPC returns details only when all three match; direct order-table access is restricted, while product admins can review all orders.
 
 Razorpay Checkout support is implemented for UPI, cards, and netbanking. Online payments remain unavailable until the merchant account, Edge Function secrets, and deployed functions are configured. The storefront never receives the Razorpay secret or handles card details. Before online payments can work:
 
