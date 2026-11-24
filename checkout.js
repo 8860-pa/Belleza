@@ -104,7 +104,8 @@ function showConfirmation(orderId, subtotal, paymentMethod) {
   sessionStorage.removeItem(cartStorageKey);
   checkoutForm.hidden = true;
   document.getElementById("confirmationDetails").textContent =
-    `Order reference ${orderId.slice(0, 8).toUpperCase()} · Items subtotal ${window.BELLEZAStore.formatPrice(subtotal)}.`;
+    `Order reference ${orderId.toUpperCase()} · Items subtotal ${window.BELLEZAStore.formatPrice(subtotal)}.`;
+  document.getElementById("trackOrderLink").href = `track-order.html?order=${encodeURIComponent(orderId)}`;
   document.getElementById("confirmationPaymentDetails").textContent = paymentMethod === "razorpay"
     ? "Payment confirmed through Razorpay. BELLEZA will confirm delivery charges separately; those are payable on delivery."
     : "Payment is due on delivery. BELLEZA will contact you to confirm delivery charges and details.";
