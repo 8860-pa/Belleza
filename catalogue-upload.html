@@ -37,6 +37,18 @@
       }
       .form-field textarea { min-height: 100px; resize: vertical; }
       .form-field small { color: #a8add0; font-size: 11px; }
+      .product-entry-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .product-entry-heading h2 { margin: 0; font-size: 18px; }
+      .product-entry-heading > span { color: #a8add0; font-size: 11px; }
+      .product-entries { display: grid; gap: 14px; margin-bottom: 14px; }
+      .product-entry { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 18px; border: 1px solid var(--line); background: #171d35; }
+      .product-entry[hidden] { display: none; }
+      .product-entry legend { grid-column: 1 / -1; width: 100%; padding: 0; }
+      .product-entry .form-field.full { grid-column: 1 / -1; }
+      .remove-product-entry { border: 0; background: transparent; color: #ff91c8; cursor: pointer; }
+      .product-image-selection { grid-column: 1 / -1; min-height: 18px; margin: 0; color: #a8add0; font-size: 11px; }
+      .add-product-entry { min-height: 42px; margin-bottom: 20px; padding: 0 16px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+      .publish-note { margin: 0 0 20px; padding: 12px 14px; border-left: 2px solid var(--violet); background: rgba(156, 123, 255, .08); color: #d7d2ef; font-size: 12px; line-height: 1.6; }
       .drop-zone {
         min-height: 330px; border: 1px dashed #7869b7; background: rgba(8,10,20,.62);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -70,6 +82,8 @@
         .drop-zone { min-height: 300px; }
         .form-grid { grid-template-columns: 1fr; }
         .form-field.full { grid-column: auto; }
+        .product-entry { grid-template-columns: 1fr; padding: 14px; }
+        .product-entry .form-field.full, .product-entry legend, .product-image-selection { grid-column: auto; }
       }
     </style>
   </head>
@@ -109,7 +123,7 @@
         <div class="upload-card">
           <section class="vendor-auth" id="vendorAuth">
             <h2>Vendor sign in</h2>
-            <p>Sign in or create a vendor account to submit a catalogue. Your uploads are private to you and the BELLEZA admin team.</p>
+            <p>Sign in or create a vendor account to submit products and catalogue details. Product photos appear in the public store; supporting files remain private to you and the BELLEZA admin team.</p>
             <form id="vendorAuthForm">
               <div class="form-grid">
                 <div class="form-field full">
@@ -133,7 +147,8 @@
             <button class="secondary-button" id="vendorSignOutButton" type="button">Sign out</button>
           </div>
           <form class="catalogue-form" id="catalogueForm" hidden>
-            <p class="form-intro">Catalogue details <span aria-hidden="true">*</span> Required fields</p>
+            <p class="form-intro">Add the products you want listed, then attach any supporting catalogue files.</p>
+            <p class="publish-note">Products submitted here are added to the storefront immediately. Add at least one product and its photos.</p>
             <div class="form-grid">
               <div class="form-field full">
                 <label for="catalogueTitle">Catalogue title *</label>
@@ -147,20 +162,11 @@
                 <label for="category">Category *</label>
                 <select id="category" name="category" required>
                   <option value="">Select a category</option>
-                  <option>Clothing</option>
-                  <option>Accessories</option>
-                  <option>Beauty &amp; wellness</option>
-                  <option>Home &amp; living</option>
-                  <option>Other</option>
                 </select>
               </div>
               <div class="form-field">
                 <label for="season">Season or collection</label>
                 <input id="season" name="season" type="text" maxlength="60" placeholder="e.g. Spring / Summer 2026" />
-              </div>
-              <div class="form-field">
-                <label for="productCount">Number of products</label>
-                <input id="productCount" name="productCount" type="number" min="1" max="10000" placeholder="e.g. 24" />
               </div>
               <div class="form-field full">
                 <label for="description">Description *</label>
@@ -172,10 +178,47 @@
                 <input id="contactEmail" name="email" type="email" placeholder="you@example.com" required />
               </div>
             </div>
-            <p class="file-label">Catalogue file * <span aria-hidden="true">Choose at least one file</span></p>
+            <div class="product-entry-heading">
+              <h2>Store products</h2>
+              <span>Up to 50 products</span>
+            </div>
+            <div class="product-entries" id="productEntries"></div>
+            <button class="add-product-entry" id="addProductEntryButton" type="button">+ Add another product</button>
+            <template id="productEntryTemplate">
+              <fieldset class="product-entry" data-product-entry>
+                <legend>
+                  <div class="product-entry-heading">
+                    <h2>Product <span data-product-number></span></h2>
+                    <button class="remove-product-entry" type="button" data-remove-product>Remove</button>
+                  </div>
+                </legend>
+                <div class="form-field">
+                  <label>Product name *</label>
+                  <input data-product-name type="text" maxlength="100" aria-label="Product name" required />
+                </div>
+                <div class="form-field">
+                  <label>Store category *</label>
+                  <select data-product-category aria-label="Store category" required></select>
+                </div>
+                <div class="form-field">
+                  <label>Price (INR) *</label>
+                  <input data-product-price type="number" min="0.01" step="0.01" aria-label="Price in INR" required />
+                </div>
+                <div class="form-field">
+                  <label>Badge</label>
+                  <input data-product-badge type="text" maxlength="24" aria-label="Product badge" placeholder="e.g. New" />
+                </div>
+                <div class="form-field full">
+                  <label>Product photos * (up to 8, JPG/PNG/WebP, 10 MB each)</label>
+                  <input data-product-images type="file" aria-label="Product photos" accept="image/jpeg,image/png,image/webp" multiple required />
+                </div>
+                <p class="product-image-selection" data-image-selection aria-live="polite"></p>
+              </fieldset>
+            </template>
+            <p class="file-label">Supporting catalogue files <span aria-hidden="true">Optional · PDF, JPG, PNG, or ZIP</span></p>
             <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Add catalogue files">
               <div class="upload-icon">↑</div>
-              <h2>Drop catalogue files here</h2>
+              <h2>Drop supporting files here</h2>
               <p>PDF, JPG, PNG or ZIP · Maximum 20 MB per file</p>
               <button class="browse-button" type="button" id="browseButton">Browse files</button>
               <input id="catalogueFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.zip" />
@@ -192,6 +235,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-client.js"></script>
+    <script src="store-data.js"></script>
+    <script src="product-images.js"></script>
     <script src="catalogue-upload.js"></script>
   </body>
 </html>

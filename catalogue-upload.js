@@ -7,6 +7,8 @@ const uploadStatus = document.getElementById("uploadStatus");
 const fileInput = document.getElementById("catalogueFiles");
 const dropZone = document.getElementById("dropZone");
 const fileList = document.getElementById("fileList");
+const productEntries = document.getElementById("productEntries");
+const productEntryTemplate = document.getElementById("productEntryTemplate");
 const maxFileSize = 20 * 1024 * 1024;
 const allowedTypes = {
   pdf: "application/pdf",
@@ -32,6 +34,7 @@ function showUploadForm(user) {
   catalogueForm.hidden = false;
   const email = catalogueForm.elements.email;
   if (!email.value) email.value = user.email || "";
+  if (!productEntries.children.length) addProductEntry();
 }
 
 function updateAuthMode() {
@@ -82,8 +85,62 @@ document.getElementById("vendorSignOutButton").addEventListener("click", async (
   catalogueForm.reset();
   selectedFiles = [];
   renderFiles();
+  resetProductEntries();
   showAuthMessage("You have signed out.");
 });
+
+function populateCategoryOptions(select, placeholder) {
+  select.replaceChildren(new Option(placeholder, ""));
+  window.BELLEZAStore.categories.forEach((category) => {
+    select.add(new Option(category.label, category.value));
+  });
+}
+
+function updateProductEntryNumbers() {
+  [...productEntries.querySelectorAll("[data-product-entry]")].forEach((entry, index) => {
+    entry.querySelector("[data-product-number]").textContent = String(index + 1);
+    const removeButton = entry.querySelector("[data-remove-product]");
+    removeButton.disabled = productEntries.children.length === 1;
+    removeButton.setAttribute("aria-label", `Remove product ${index + 1}`);
+  });
+}
+
+function addProductEntry() {
+  if (productEntries.children.length >= 50) {
+    uploadStatus.textContent = "A catalogue can include up to 50 products.";
+    return;
+  }
+  const entry = productEntryTemplate.content.firstElementChild.cloneNode(true);
+  populateCategoryOptions(entry.querySelector("[data-product-category]"), "Select a store category");
+  entry.querySelector("[data-product-images]").addEventListener("change", (event) => {
+    const files = [...event.currentTarget.files];
+    const status = entry.querySelector("[data-image-selection]");
+    if (!files.length) {
+      status.textContent = "";
+      return;
+    }
+    try {
+      window.BELLEZAProductImages.validate(files);
+      status.textContent = `${files.length} photo${files.length === 1 ? "" : "s"} selected.`;
+    } catch (error) {
+      event.currentTarget.value = "";
+      status.textContent = error.message;
+    }
+  });
+  entry.querySelector("[data-remove-product]").addEventListener("click", () => {
+    entry.remove();
+    updateProductEntryNumbers();
+  });
+  productEntries.append(entry);
+  updateProductEntryNumbers();
+}
+
+function resetProductEntries() {
+  productEntries.replaceChildren();
+  addProductEntry();
+}
+
+document.getElementById("addProductEntryButton").addEventListener("click", addProductEntry);
 
 document.getElementById("browseButton").addEventListener("click", (event) => {
   event.stopPropagation();
@@ -179,18 +236,57 @@ async function uploadSelectedFiles(user, submissionId, uploaded) {
   }
 }
 
+async function uploadProductPhotos(user, products, uploaded) {
+  for (const product of products) {
+    product.images = await window.BELLEZAProductImages.upload(
+      client,
+      user.id,
+      product.id,
+      product.files
+    );
+    uploaded.push(...product.images);
+    product.image = product.images[0].url;
+    delete product.files;
+  }
+}
+
+function readProductEntries() {
+  return [...productEntries.querySelectorAll("[data-product-entry]")].map((entry) => {
+    const files = [...entry.querySelector("[data-product-images]").files];
+    window.BELLEZAProductImages.validate(files);
+    return {
+      id: `product-${crypto.randomUUID()}`,
+      name: entry.querySelector("[data-product-name]").value.trim(),
+      category: entry.querySelector("[data-product-category]").value,
+      price: Number(entry.querySelector("[data-product-price]").value),
+      badge: entry.querySelector("[data-product-badge]").value.trim(),
+      files
+    };
+  });
+}
+
 catalogueForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!selectedFiles.length) {
-    uploadStatus.textContent = "Add at least one catalogue file before submitting.";
-    dropZone.focus();
+  if (!productEntries.children.length) {
+    uploadStatus.textContent = "Add at least one product before submitting the catalogue.";
+    document.getElementById("addProductEntryButton").focus();
     return;
   }
 
-  const uploaded = [];
+  let products;
+  try {
+    products = readProductEntries();
+  } catch (error) {
+    uploadStatus.textContent = error.message;
+    return;
+  }
+
+  const uploadedCatalogueFiles = [];
+  const uploadedProductImages = [];
   const submitButton = catalogueForm.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-  uploadStatus.textContent = "Uploading catalogue files…";
+  uploadStatus.textContent = "Uploading product photos and catalogue files…";
+  let submissionState = "not-started";
 
   try {
     const { data: sessionData, error: sessionError } = await client.auth.getSession();
@@ -203,38 +299,50 @@ catalogueForm.addEventListener("submit", async (event) => {
     const user = sessionData.session.user;
     const values = new FormData(catalogueForm);
     const submissionId = crypto.randomUUID();
-    await uploadSelectedFiles(user, submissionId, uploaded);
-    const { error } = await client.from("catalogues").insert({
+    await uploadProductPhotos(user, products, uploadedProductImages);
+    await uploadSelectedFiles(user, submissionId, uploadedCatalogueFiles);
+    const catalogue = {
       id: `catalogue-${submissionId}`,
-      submitter_id: user.id,
       title: values.get("title").trim(),
       brand: values.get("brand").trim(),
       category: values.get("category"),
       season: values.get("season").trim(),
-      product_count: values.get("productCount") ? Number(values.get("productCount")) : null,
       description: values.get("description").trim(),
       email: values.get("email").trim(),
-      files: uploaded
+      files: uploadedCatalogueFiles
+    };
+    submissionState = "pending";
+    const { error } = await client.rpc("submit_catalogue_with_products", {
+      p_catalogue: catalogue,
+      p_products: products
     });
+    submissionState = "complete";
     if (error) throw error;
 
     catalogueForm.reset();
     selectedFiles = [];
     renderFiles();
-    uploadStatus.textContent = "Catalogue submitted. The BELLEZA team can now review your files.";
+    resetProductEntries();
+    uploadStatus.textContent = `${products.length} product${products.length === 1 ? "" : "s"} added to the storefront. Catalogue submitted for review.`;
   } catch (error) {
-    if (uploaded.length) {
+    if (submissionState === "pending") {
+      uploadStatus.textContent = `Could not confirm the submission: ${error.message}. Refresh the storefront and seller panel before retrying; uploaded photos were kept to avoid breaking a submission that may have succeeded.`;
+    } else {
+      const cleanupErrors = [];
       try {
+        await window.BELLEZAProductImages.remove(client, uploadedProductImages);
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError.message);
+      }
+      if (uploadedCatalogueFiles.length) {
         const { error: cleanupError } = await client.storage
           .from("catalogues")
-          .remove(uploaded.map((file) => file.path));
-        if (cleanupError) throw cleanupError;
-        uploadStatus.textContent = `Submission failed: ${error.message}. Uploaded files were removed.`;
-      } catch (cleanupError) {
-        uploadStatus.textContent = `Submission failed: ${error.message}. Uploaded files could not be cleaned up: ${cleanupError.message}`;
+          .remove(uploadedCatalogueFiles.map((file) => file.path));
+        if (cleanupError) cleanupErrors.push(`Catalogue files could not be removed: ${cleanupError.message}`);
       }
-    } else {
-      uploadStatus.textContent = `Submission failed: ${error.message}`;
+      uploadStatus.textContent = cleanupErrors.length
+        ? `Submission failed: ${error.message}. ${cleanupErrors.join(" ")}`
+        : `Submission failed: ${error.message}. Uploaded files were removed.`;
     }
   } finally {
     submitButton.disabled = false;
@@ -242,6 +350,8 @@ catalogueForm.addEventListener("submit", async (event) => {
 });
 
 async function initializeVendorPage() {
+  populateCategoryOptions(document.getElementById("category"), "Select a category");
+  addProductEntry();
   if (window.BELLEZA_SUPABASE_ERROR) {
     vendorAuthForm.hidden = true;
     showAuthMessage(window.BELLEZA_SUPABASE_ERROR);

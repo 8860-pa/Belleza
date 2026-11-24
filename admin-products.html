@@ -150,8 +150,10 @@
               <input id="productBadge" name="badge" maxlength="24" placeholder="e.g. New" />
             </div>
             <div class="form-field full">
-              <label for="productImage">Product image URL *</label>
-              <input id="productImage" name="image" type="url" required placeholder="https://example.com/product.jpg" />
+              <label for="productImages">Product photos *</label>
+              <input id="productImages" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+              <small id="productImageHelp">Choose 1–8 JPG, PNG, or WebP photos, up to 10 MB each. Add more while editing to extend the gallery.</small>
+              <p class="admin-message" id="productImageSelection" aria-live="polite"></p>
             </div>
             <div class="form-actions">
               <button class="primary-button" id="saveProductButton" type="submit">Save product</button>
@@ -200,6 +202,7 @@
     <script src="supabase-config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="store-data.js"></script>
+    <script src="product-images.js"></script>
     <script src="admin-products.js"></script>
   </body>
 </html>

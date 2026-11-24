@@ -38,15 +38,33 @@ function escapeHtml(value) {
 }
 
 function renderProducts() {
+  if (!products.length) {
+    productGrid.innerHTML = `
+      <div class="empty-products">
+        <p>No products are listed yet.</p>
+        <a class="text-link" href="catalogue-upload.html">Submit products to the store ↗</a>
+      </div>
+    `;
+    productCards = [];
+    updateWishlistCount();
+    return;
+  }
+
   productGrid.innerHTML = products.map((product) => {
     const category = window.BELLEZAStore.categories.find((item) => item.value === product.category);
     const categoryLabel = category ? category.label : product.category;
+    const images = product.images.map((image) => image.url);
     return `
       <article class="product-card" data-category="${escapeHtml(product.category)}" data-name="${escapeHtml(product.name)}">
         <button class="favorite${wishlist.includes(product.id) ? " active" : ""}" data-product-id="${escapeHtml(product.id)}" aria-label="${wishlist.includes(product.id) ? "Remove " + escapeHtml(product.name) + " from wishlist" : "Add " + escapeHtml(product.name) + " to wishlist"}">${wishlist.includes(product.id) ? "♥" : "♡"}</button>
-        <div class="product-image">
+        <div class="product-image" data-image-index="0">
           ${product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : ""}
-          <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />
+          <img src="${escapeHtml(images[0] || product.image)}" alt="${escapeHtml(product.name)}" />
+          ${images.length > 1 ? `
+            <button class="product-image-nav previous" type="button" data-product-image-step="-1" data-product-id="${escapeHtml(product.id)}" aria-label="Previous photo of ${escapeHtml(product.name)}">‹</button>
+            <span class="product-image-count" aria-live="polite">1 / ${images.length}</span>
+            <button class="product-image-nav next" type="button" data-product-image-step="1" data-product-id="${escapeHtml(product.id)}" aria-label="Next photo of ${escapeHtml(product.name)}">›</button>
+          ` : ""}
         </div>
         <div class="product-info">
           <div><p class="product-category">${escapeHtml(categoryLabel)}</p><h3>${escapeHtml(product.name)}</h3></div>
@@ -68,12 +86,26 @@ async function loadProducts() {
     renderProducts();
     renderCart();
   } catch (error) {
-    productGrid.innerHTML = '<p class="empty-cart">Products could not be loaded. Please try again later.</p>';
+    productGrid.innerHTML = '<div class="empty-products" role="alert"><p>Products could not be loaded. Please try again later.</p></div>';
     console.error("Could not load BELLEZA products.", error);
   }
 }
 
 function bindProductActions() {
+  document.querySelectorAll(".product-image-nav").forEach((button) => {
+    button.addEventListener("click", () => {
+      const product = products.find((item) => item.id === button.dataset.productId);
+      if (!product) return;
+      const images = product.images.map((image) => image.url);
+      const imageFrame = button.closest(".product-image");
+      const image = imageFrame.querySelector("img");
+      const count = imageFrame.querySelector(".product-image-count");
+      const nextIndex = (Number(imageFrame.dataset.imageIndex) + Number(button.dataset.productImageStep) + images.length) % images.length;
+      imageFrame.dataset.imageIndex = nextIndex;
+      image.src = images[nextIndex];
+      count.textContent = `${nextIndex + 1} / ${images.length}`;
+    });
+  });
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", () => {
       const productId = button.dataset.productId;
