@@ -2,8 +2,8 @@ create table if not exists public.products (
   id text primary key,
   name text not null,
   category text not null check (category in (
-    'home', 'wellness', 'carry', 'mobile-accessories', 'charger-case',
-    'key-chain', 'humidifier', 'massager', 't-shirts'
+    'accessories', 'mobile-accessories', 'charger-case', 'key-chain',
+    'humidifier', 'massager', 't-shirts'
   )),
   price numeric(12, 2) not null check (price > 0),
   image text not null,
@@ -12,10 +12,13 @@ create table if not exists public.products (
 );
 
 alter table public.products drop constraint if exists products_category_check;
+update public.products
+set category = 'accessories'
+where category in ('home', 'wellness', 'carry');
 alter table public.products add constraint products_category_check
   check (category in (
-    'home', 'wellness', 'carry', 'mobile-accessories', 'charger-case',
-    'key-chain', 'humidifier', 'massager', 't-shirts'
+    'accessories', 'mobile-accessories', 'charger-case', 'key-chain',
+    'humidifier', 'massager', 't-shirts'
   ));
 
 create table if not exists public.product_admins (
@@ -156,10 +159,10 @@ create policy "Vendors and admins can delete catalogue files"
 
 insert into public.products (id, name, category, price, image, badge, sort_order)
 values
-  ('mineral-face-wash', 'Mineral Face Wash', 'wellness', 28, 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85', 'Bestseller', 10),
-  ('stoneware-mug', 'Stoneware Mug', 'home', 34, 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85', '', 20),
-  ('canvas-tote', 'Canvas Tote', 'carry', 42, 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85', 'New', 30),
-  ('botanical-hand-balm', 'Botanical Hand Balm', 'wellness', 24, 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85', '', 40)
+  ('mineral-face-wash', 'Mineral Face Wash', 'accessories', 28, 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85', 'Bestseller', 10),
+  ('stoneware-mug', 'Stoneware Mug', 'accessories', 34, 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=700&q=85', '', 20),
+  ('canvas-tote', 'Canvas Tote', 'accessories', 42, 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85', 'New', 30),
+  ('botanical-hand-balm', 'Botanical Hand Balm', 'accessories', 24, 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=85', '', 40)
 on conflict (id) do nothing;
 
 create table if not exists public.orders (
